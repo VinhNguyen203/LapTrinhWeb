@@ -1,0 +1,123 @@
+<!-- Areas/Admin/Views/Dashboard/Index.cshtml -->
+<!-- Phần của Huân: Giao diện Dashboard & Thống kê -->
+@{
+    ViewData["Title"] = "Tổng quan hệ thống";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <h2 class="fw-bold mb-4">Dashboard Thống Kê</h2>
+    
+    <!-- 4 Thẻ Số liệu -->
+    <div class="row g-4 mb-4">
+        <!-- Doanh thu -->
+        <div class="col-md-3">
+            <div class="card card-modern bg-primary text-white h-100" style="background: var(--primary-gradient) !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1 opacity-75">Doanh thu tháng này</p>
+                            <h3 class="fw-bold mb-0">125.500.000đ</h3>
+                        </div>
+                        <i class="fa-solid fa-money-bill-wave fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Đơn Pending -->
+        <div class="col-md-3">
+            <div class="card card-modern bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1 opacity-75">Đơn hàng chờ duyệt</p>
+                            <h3 class="fw-bold mb-0">12 Đơn</h3>
+                        </div>
+                        <i class="fa-solid fa-clock fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Sản phẩm kinh doanh -->
+        <div class="col-md-3">
+            <div class="card card-modern bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1 opacity-75">Sản phẩm đang bán</p>
+                            <h3 class="fw-bold mb-0">45 Mẫu</h3>
+                        </div>
+                        <i class="fa-solid fa-laptop fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Khách mới -->
+        <div class="col-md-3">
+            <div class="card card-modern bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1 opacity-75">Khách mới tháng này</p>
+                            <h3 class="fw-bold mb-0">+32</h3>
+                        </div>
+                        <i class="fa-solid fa-users fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ Chart.js -->
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card card-modern p-3">
+                <h5 class="fw-bold mb-3">Doanh thu 7 ngày gần nhất</h5>
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-modern p-3">
+                <h5 class="fw-bold mb-3">Tỷ trọng theo hãng</h5>
+                <canvas id="brandChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Khởi tạo biểu đồ Doanh thu (Line/Bar chart)
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revCtx, {
+            type: 'line',
+            data: {
+                labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: [15000000, 20000000, 0, 35000000, 12000000, 45000000, 28000000],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4 // Làm mượt đường cong
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Khởi tạo biểu đồ Tỷ trọng (Doughnut/Pie chart)
+        const brandCtx = document.getElementById('brandChart').getContext('2d');
+        new Chart(brandCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Dell', 'Asus', 'MacBook', 'HP', 'Khác'],
+                datasets: [{
+                    data: [35, 25, 20, 10, 10],
+                    backgroundColor: ['#ff9a9e', '#fecfef', '#667eea', '#764ba2', '#e4e5e6']
+                }]
+            },
+            options: { responsive: true }
+        });
+    </script>
+}
