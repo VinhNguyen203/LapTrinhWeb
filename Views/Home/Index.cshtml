@@ -1,0 +1,123 @@
+﻿<!-- Phần của Khoa & Huân: Trang chủ Client - Giao diện rực rỡ, hiện đại, sống động -->
+@{
+    ViewData["Title"] = "Trang chủ - Thế giới Laptop Đỉnh Cao";
+}
+
+<div class="container-fluid px-4 py-4" style="background: linear-gradient(180deg, #f8fafc 0%, #ede9fe 100%); min-height: 100vh; border-radius: 20px;">
+    
+    <!-- Banner chính rực rỡ với hiệu ứng đa sắc và ánh sáng cách điệu -->
+    <div class="row mb-5 align-items-center rounded-5 p-5 text-white position-relative overflow-hidden shadow-lg" style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);">
+        <!-- Hiệu ứng bóng sáng trang trí nền -->
+        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.25) 0%, transparent 50%); pointer-events: none;"></div>
+        
+        <div class="col-lg-7 mb-4 mb-lg-0 position-relative z-index-1">
+            <span class="badge bg-white text-dark mb-3 px-3 py-2 rounded-pill fw-bold shadow-sm" style="font-size: 0.9rem;">
+                <i class="fa-solid fa-fire text-danger me-1"></i> Bộ Sưu Tập Đỉnh Cao 2026
+            </span>
+            <h1 class="display-3 fw-extrabold mb-3 text-white" style="text-shadow: 0 3px 15px rgba(0,0,0,0.2);">
+                Thế Giới Laptop <br/>Công Nghệ Tương Lai
+            </h1>
+            <p class="lead mb-4 text-white-50" style="font-weight: 500;">
+                Khám phá hiệu năng đỉnh chóp từ các dòng Laptop Gaming, Đồ họa và Văn phòng cao cấp nhất. Thiết kế sang trọng, cấu hình khủng!
+            </p>
+            <div class="d-flex gap-3">
+                <a href="/Products" class="btn btn-light btn-lg rounded-pill fw-bold px-5 text-purple shadow-lg" style="color: #7c3aed; transition: all 0.3s;">
+                    Khám Phá Ngay <i class="fa-solid fa-arrow-right ms-2"></i>
+                </a>
+                <a href="/Admin/Dashboard" class="btn btn-outline-light btn-lg rounded-pill fw-bold px-4">
+                    <i class="fa-solid fa-chart-pie me-2"></i> Dashboard Admin
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-lg-5 text-center position-relative z-index-1">
+            <div class="p-4 rounded-circle d-inline-block shadow-lg" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px);">
+                <i class="fa-solid fa-laptop-code text-white" style="font-size: 130px; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tiêu đề Sản phẩm nổi bật kèm phong cách rực rỡ -->
+    <div class="d-flex justify-content-between align-items-end mb-4 px-2 border-bottom pb-3">
+        <div>
+            <span class="text-uppercase fw-bold text-primary small tracking-widest">Xu hướng 2026</span>
+            <h3 class="fw-bold mb-0 text-dark display-6">Sản Phẩm Nổi Bật <i class="fa-solid fa-bolt text-warning ms-1"></i></h3>
+        </div>
+        <a href="/Products" class="btn btn-sm btn-outline-primary rounded-pill px-4 fw-bold shadow-sm">
+            Xem Tất Cả <i class="fa-solid fa-angle-right ms-1"></i>
+        </a>
+    </div>
+
+    <!-- Lưới sản phẩm rực rỡ, hiệu ứng card nổi khối cao cấp -->
+    <div class="row g-4 mb-5">
+        @for (int i = 1; i <= 4; i++)
+        {
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-modern h-100 p-3 border-0 shadow-lg position-relative overflow-hidden" style="border-radius: 20px; background: #ffffff; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);">
+                    
+                    <!-- Nhãn giảm giá rực rỡ -->
+                    <div class="position-absolute top-0 start-0 m-3 z-index-1">
+                        <span class="badge text-white px-3 py-2 rounded-pill fw-bold shadow-sm" style="background: linear-gradient(135deg, #ff416c, #ff4b2b);">
+                            -15% GIẢM SỐC
+                        </span>
+                    </div>
+
+                    <!-- Khung hình ảnh sản phẩm với nền chuyển màu mượt mà -->
+                    <div class="text-center p-4 rounded-4 mb-3 position-relative" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);">
+                        <div class="py-4">
+                            <i class="fa-solid fa-laptop text-primary" style="font-size: 70px; filter: drop-shadow(0 8px 12px rgba(99, 102, 241, 0.25));"></i>
+                        </div>
+                        <span class="badge bg-dark text-white position-absolute bottom-0 end-0 m-2 px-2 py-1 rounded-3 small shadow-sm">Chính hãng</span>
+                    </div>
+
+                    <div class="card-body p-2 d-flex flex-column">
+                        <div class="mb-2">
+                            <span class="text-muted small fw-semibold"><i class="fa-solid fa-tag text-purple me-1"></i> Gaming & Đồ Họa</span>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark text-truncate mb-2" style="font-size: 1.15rem;">MacBook Pro M3 Max 2026</h5>
+                        <p class="text-secondary small mb-3 bg-light p-2 rounded-3">
+                            <i class="fa-solid fa-microchip me-1 text-primary"></i> RAM 16GB | SSD 512GB | Retina
+                        </p>
+                        
+                        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-danger fw-extrabold fs-5" style="letter-spacing: -0.5px;">35.990.000đ</span><br/>
+                                <del class="text-muted small text-decoration-line-through">40.990.000đ</del>
+                            </div>
+                            <!-- Nút thêm vào giỏ hàng gradient rực rỡ -->
+                            <button class="btn btn-gradient rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; border: none; transition: transform 0.2s;" title="Thêm vào giỏ hàng">
+                                <i class="fa-solid fa-cart-plus fs-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Banner khuyến mãi phụ tăng độ sinh động -->
+    <div class="row rounded-4 p-4 text-white align-items-center mb-4 shadow-lg" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 1px solid rgba(255,255,255,0.1);">
+        <div class="col-md-8">
+            <h4 class="fw-bold mb-1 text-warning"><i class="fa-solid fa-gift me-2"></i> Đăng Ký Thành Viên Nhận Voucher 500K</h4>
+            <p class="mb-0 text-muted small">Trở thành khách hàng thân thiết ngay hôm nay để nhận ưu đãi đặc biệt cho đơn hàng đầu tiên của bạn tại LaptopShop!</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="/Account/Register" class="btn btn-warning rounded-pill px-4 fw-bold text-dark shadow">Đăng Ký Ngay</a>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* CSS hiệu ứng nổi khối và tương tác rực rỡ */
+    .card-modern:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(99, 102, 241, 0.25) !important;
+    }
+    .fw-extrabold {
+        font-weight: 800;
+    }
+    .tracking-widest {
+        letter-spacing: 0.1em;
+    }
+</style>
