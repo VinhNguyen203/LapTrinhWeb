@@ -1,0 +1,132 @@
+﻿@model LaptopShop.Models.CheckoutViewModel
+
+@{
+    ViewData["Title"] = "Thanh toán";
+}
+
+<h1>Thông tin nhận hàng</h1>
+
+<form asp-controller="Checkout"
+      asp-action="Index"
+      method="post"
+      id="checkout-form">
+
+    <div asp-validation-summary="All"
+         class="text-danger mb-3">
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CustomerName" class="form-label">
+            Họ và tên
+        </label>
+
+        <input asp-for="CustomerName"
+               class="form-control"
+               autocomplete="name" />
+
+        <span asp-validation-for="CustomerName"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PhoneNumber" class="form-label">
+            Số điện thoại
+        </label>
+
+        <input asp-for="PhoneNumber"
+               class="form-control"
+               type="tel"
+               autocomplete="tel" />
+
+        <span asp-validation-for="PhoneNumber"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ShippingAddress" class="form-label">
+            Địa chỉ giao hàng
+        </label>
+
+        <textarea asp-for="ShippingAddress"
+                  class="form-control"
+                  rows="3"
+                  autocomplete="street-address"></textarea>
+
+        <span asp-validation-for="ShippingAddress"
+              class="text-danger"></span>
+    </div>
+
+    <fieldset class="mb-3">
+        <legend class="fs-6 fw-bold">
+            Phương thức thanh toán
+        </legend>
+
+        <div class="form-check">
+            <input asp-for="PaymentMethod"
+                   type="radio"
+                   value="COD"
+                   id="payment-cod"
+                   class="form-check-input" />
+
+            <label for="payment-cod" class="form-check-label">
+                Thanh toán khi nhận hàng (COD)
+            </label>
+        </div>
+
+        <div class="form-check">
+            <input asp-for="PaymentMethod"
+                   type="radio"
+                   value="QR"
+                   id="payment-qr"
+                   class="form-check-input" />
+
+            <label for="payment-qr" class="form-check-label">
+                Chuyển khoản ngân hàng (QR)
+            </label>
+        </div>
+
+        <span asp-validation-for="PaymentMethod"
+              class="text-danger"></span>
+    </fieldset>
+
+    <button type="submit"
+            id="place-order-button"
+            class="btn btn-success">
+        Đặt hàng
+    </button>
+
+    <a asp-controller="Cart"
+       asp-action="Index"
+       class="btn btn-secondary">
+        Quay lại giỏ
+    </a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const form = document.getElementById("checkout-form");
+        const button = document.getElementById("place-order-button");
+
+        form.addEventListener("submit", function (event) {
+            if (event.defaultPrevented) {
+                return;
+            }
+
+            if (window.jQuery &&
+                jQuery.validator &&
+                !jQuery(form).valid()) {
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Đang đặt hàng...";
+        });
+
+        window.addEventListener("pageshow", function () {
+            button.disabled = false;
+            button.textContent = "Đặt hàng";
+        });
+    </script>
+}

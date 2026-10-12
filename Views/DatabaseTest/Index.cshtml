@@ -1,0 +1,71 @@
+﻿@model List<LaptopShop.Models.Product>
+
+@{
+    ViewData["Title"] = "Danh sách sản phẩm";
+}
+
+@if (TempData["CartError"] is string error)
+{
+    <div class="alert alert-danger">
+        @error
+    </div>
+}
+
+<h1>Danh sách sản phẩm</h1>
+
+<p>Đang hiển thị @Model.Count sản phẩm.</p>
+
+<!-- Nơi JavaScript hiển thị kết quả thêm hàng -->
+<div id="cart-message"
+     class="alert d-none"
+     role="status"
+     aria-live="polite">
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Mã</th>
+            <th>Tên sản phẩm</th>
+            <th>Giá</th>
+            <th>Tồn kho</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.Id</td>
+                <td>@product.Name</td>
+                <td>@product.Price.ToString("N0") đ</td>
+                <td>@product.StockQuantity</td>
+
+                <td>
+                    <form asp-controller="Cart"
+                          asp-action="Add"
+                          method="post"
+                          class="js-add-to-cart">
+
+                        <input type="hidden"
+                               name="productId"
+                               value="@product.Id" />
+
+                        <input type="hidden"
+                               name="quantity"
+                               value="1" />
+
+                        <button type="submit" class="btn btn-primary">
+                            Thêm vào giỏ
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="~/js/cart.js" asp-append-version="true"></script>
+}

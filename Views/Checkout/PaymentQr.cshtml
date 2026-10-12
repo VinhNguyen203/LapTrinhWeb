@@ -1,0 +1,57 @@
+﻿@model LaptopShop.Models.Order
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@{
+    ViewData["Title"] = "Thanh toán QR";
+
+    string? qrPath = Configuration["Payment:QrImagePath"];
+    string transferContent = $"LS{Model.Id:D6}";
+}
+
+<h1>Thanh toán chuyển khoản</h1>
+
+<div class="alert alert-warning">
+    Đơn đã được tạo, đang chờ cửa hàng xác nhận thanh toán.
+</div>
+
+<p>Mã đơn: <strong>@transferContent</strong></p>
+
+@if (!string.IsNullOrWhiteSpace(qrPath))
+{
+    <img src="@Url.Content(qrPath)"
+         alt="QR nhận tiền của cửa hàng"
+         class="img-fluid mb-3"
+         style="max-width: 300px;" />
+}
+else
+{
+    <p class="text-danger">Chưa cấu hình ảnh QR.</p>
+}
+
+<dl>
+    <dt>Ngân hàng</dt>
+    <dd>@Configuration["Payment:BankName"]</dd>
+
+    <dt>Số tài khoản</dt>
+    <dd>@Configuration["Payment:AccountNumber"]</dd>
+
+    <dt>Chủ tài khoản</dt>
+    <dd>@Configuration["Payment:AccountName"]</dd>
+
+    <dt>Số tiền chuyển</dt>
+    <dd>@Model.TotalAmount?.ToString("N0") đ</dd>
+
+    <dt>Nội dung chuyển khoản</dt>
+    <dd><strong>@transferContent</strong></dd>
+</dl>
+
+<p>
+    Quét QR và nhập đúng số tiền, nội dung phía trên.
+    Cửa hàng sẽ đối soát thủ công.
+</p>
+
+<a asp-controller="DatabaseTest"
+   asp-action="Index"
+   class="btn btn-primary">
+    Tiếp tục mua hàng
+</a>
