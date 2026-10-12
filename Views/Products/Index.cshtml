@@ -1,0 +1,120 @@
+﻿@model IEnumerable<LaptopShop.Models.Product>
+
+@{
+    ViewData["Title"] = "Danh Sách Sản Phẩm";
+}
+
+<style>
+    body {
+        /* Nền đồng bộ với trang chủ */
+        background: linear-gradient(180deg, #f8fafc 0%, #ede9fe 100%); 
+        min-height: 100vh;
+    }
+
+    /* Hiệu ứng thẻ Card hiện đại từ Khoa & Huân */
+    .card-modern {
+        border-radius: 20px;
+        background: #ffffff;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    
+    .card-modern:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(99, 102, 241, 0.25) !important;
+    }
+
+    /* Font chữ siêu đậm cho giá */
+    .fw-extrabold {
+        font-weight: 800;
+    }
+
+    /* Nút giỏ hàng gradient */
+    .btn-gradient-cart {
+        width: 45px; 
+        height: 45px; 
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); 
+        color: white; 
+        border: none; 
+        transition: transform 0.2s;
+    }
+    .btn-gradient-cart:hover {
+        transform: scale(1.1);
+        color: white;
+    }
+</style>
+
+<div class="container py-5">
+    
+    <!-- Tiêu đề trang đồng bộ phong cách -->
+    <div class="d-flex justify-content-between align-items-end mb-4 px-2 border-bottom pb-3">
+        <div>
+            <span class="text-uppercase fw-bold text-primary small" style="letter-spacing: 0.1em;">Kho Hàng 2026</span>
+            <h3 class="fw-bold mb-0 text-dark display-6">Tất Cả Sản Phẩm <i class="fa-solid fa-layer-group text-warning ms-1"></i></h3>
+        </div>
+    </div>
+
+    <!-- Lưới sản phẩm rực rỡ -->
+    <div class="row g-4 mb-5">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                var originalPrice = item.Price * 1.15m; // Giá gốc tượng trưng
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card card-modern h-100 p-3 border-0 shadow-lg position-relative overflow-hidden">
+                        
+                        <!-- Nhãn giảm giá rực rỡ -->
+                        <div class="position-absolute top-0 start-0 m-3 z-index-1">
+                            <span class="badge text-white px-3 py-2 rounded-pill fw-bold shadow-sm" style="background: linear-gradient(135deg, #ff416c, #ff4b2b);">
+                                -15% GIẢM SỐC
+                            </span>
+                        </div>
+
+                        <!-- KHUNG HÌNH ẢNH SẢN PHẨM BÊ NGUYÊN TỪ TRANG CHỦ -->
+                        <div class="text-center p-4 rounded-4 mb-3 position-relative" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);">
+                            <div class="py-4">
+                                <i class="fa-solid fa-laptop text-primary" style="font-size: 70px; filter: drop-shadow(0 8px 12px rgba(99, 102, 241, 0.25));"></i>
+                            </div>
+                            <span class="badge bg-dark text-white position-absolute bottom-0 end-0 m-2 px-2 py-1 rounded-3 small shadow-sm">Chính hãng</span>
+                        </div>
+
+                        <!-- THÔNG TIN SẢN PHẨM TỪ CƠ SỞ DỮ LIỆU -->
+                        <div class="card-body p-2 d-flex flex-column">
+                            <div class="mb-2">
+                                <span class="text-muted small fw-semibold"><i class="fa-solid fa-tag text-purple me-1" style="color: #a855f7;"></i> Gaming & Đồ Họa</span>
+                            </div>
+                            
+                            <!-- Tên máy lấy từ Database -->
+                            <h5 class="card-title fw-bold text-dark mb-2" style="font-size: 1.15rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 44px;">
+                                @item.Name
+                            </h5>
+                            
+                            <!-- Cấu hình lấy từ Database -->
+                            <p class="text-secondary small mb-3 bg-light p-2 rounded-3 text-truncate">
+                                <i class="fa-solid fa-microchip me-1 text-primary"></i> RAM @item.RAM | @item.CPU
+                            </p>
+                            
+                            <!-- Giá tiền và nút giỏ hàng -->
+                            <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-danger fw-extrabold fs-5" style="letter-spacing: -0.5px;">@item.Price.ToString("N0")đ</span><br/>
+                                    <del class="text-muted small text-decoration-line-through">@originalPrice.ToString("N0")đ</del>
+                                </div>
+                                <button class="btn btn-gradient-cart rounded-circle shadow-sm d-flex align-items-center justify-content-center" title="Thêm vào giỏ hàng">
+                                    <i class="fa-solid fa-cart-plus fs-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <p class="text-muted fs-5">Chưa có sản phẩm nào trong database.</p>
+            </div>
+        }
+    </div>
+</div>

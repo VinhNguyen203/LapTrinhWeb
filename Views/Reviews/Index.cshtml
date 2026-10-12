@@ -1,0 +1,65 @@
+﻿@model IEnumerable<LaptopShop.Models.Review>
+
+@{
+    ViewData["Title"] = "Quản lý Đánh giá";
+}
+
+<div class="container mt-4">
+    <h2 class="text-primary mb-4">Đánh giá của Khách hàng</h2>
+
+    <table class="table table-bordered table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Mã ĐG</th>
+                <th>Sản phẩm</th>
+                <th>Khách hàng</th>
+                <th>Số Sao</th>
+                <th>Nội dung bình luận</th>
+                <th>Ngày đăng</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td class="fw-bold text-info">
+                            @(item.Product != null ? item.Product.Name : "Sản phẩm không xác định")
+                        </td>
+                        <td>@item.UserName</td>
+                        <td class="text-warning fs-5">
+                            <!-- Vòng lặp in ra số ngôi sao dựa vào Rating -->
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= item.Rating)
+                                {
+                                    <span>★</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">☆</span>
+                                }
+                            }
+                        </td>
+                        <td>@item.Comment</td>
+                        <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này không?');">
+                                <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted">Chưa có đánh giá nào.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
