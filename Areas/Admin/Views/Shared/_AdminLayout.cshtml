@@ -1,80 +1,130 @@
-<!-- Phần của Tú: _AdminLayout (sidebar có chỗ trống để mỗi người gắn menu) -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Admin CPanel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <title>@ViewData["Title"] - Quản trị LaptopShop</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <!-- Site CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="bg-light">
     <div class="d-flex">
-        <!-- Sidebar -->
-        <nav class="admin-sidebar" style="width: 250px;">
-            <div class="p-3 text-center border-bottom border-secondary mb-3">
-                <h4 class="text-white fw-bold mb-0">ADMIN PANEL</h4>
-                <small class="text-muted">LaptopShop System</small>
+        <!-- ================= SIDEBAR ================= -->
+        <nav class="admin-sidebar d-flex flex-column flex-shrink-0 p-0" style="width: 260px; min-height: 100vh;">
+            <div class="p-3 text-center border-bottom border-secondary mb-2">
+                <a href="/Admin/Dashboard" class="text-white text-decoration-none">
+                    <h4 class="fw-bold mb-0 text-white"><i class="fa-solid fa-laptop-code me-2 text-primary"></i>ADMIN CP</h4>
+                    <small class="text-muted">Hệ thống Quản trị LaptopShop</small>
+                </a>
             </div>
-            <ul class="nav flex-column mb-auto">
-                <!-- Phần của Huân: Dashboard & Kho -->
+
+            <ul class="nav flex-column mb-auto px-2">
+                <!-- Nhóm 1: Tổng quan & Kho (Phần của Huân) -->
                 <li class="nav-item">
-                    <a href="/Admin/Dashboard" class="nav-link"><i class="fa-solid fa-chart-pie me-2"></i> Tổng quan</a>
-                </li>
-                <li class="nav-item">
-                    <a href="/Admin/Inventory" class="nav-link"><i class="fa-solid fa-boxes-stacked me-2"></i> Quản lý Kho</a>
-                </li>
-                
-                <!-- Phần của Khoa: Sản phẩm, Hãng, Danh mục -->
-                <li class="nav-item mt-3">
-                    <small class="px-3 text-uppercase text-muted fw-bold">Danh mục & Sản phẩm</small>
-                    <a href="/Admin/Products" class="nav-link mt-2"><i class="fa-solid fa-laptop me-2"></i> Sản phẩm</a>
-                    <a href="/Admin/Categories" class="nav-link"><i class="fa-solid fa-list me-2"></i> Danh mục</a>
+                    <small class="px-3 text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Báo cáo & Vận hành</small>
+                    <a href="/Admin/Dashboard" class="nav-link rounded mt-1"><i class="fa-solid fa-chart-pie me-2"></i> Tổng quan (Dashboard)</a>
+                    <a href="/Admin/Inventory" class="nav-link rounded"><i class="fa-solid fa-boxes-stacked me-2"></i> Quản lý Kho hàng</a>
                 </li>
 
-                <!-- Phần của Hưng: Đơn hàng & Đánh giá -->
+                <!-- Nhóm 2: Danh mục & Sản phẩm (Phần của Khoa) -->
                 <li class="nav-item mt-3">
-                    <small class="px-3 text-uppercase text-muted fw-bold">Kinh doanh</small>
-                    <a href="/Admin/Orders" class="nav-link mt-2"><i class="fa-solid fa-cart-flatbed me-2"></i> Đơn hàng</a>
-                    <a href="/Admin/Reviews" class="nav-link"><i class="fa-solid fa-star me-2"></i> Đánh giá</a>
+                    <small class="px-3 text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Sản phẩm & Danh mục</small>
+                    <a href="/Admin/Products" class="nav-link rounded mt-1"><i class="fa-solid fa-laptop me-2"></i> Quản lý Sản phẩm</a>
+                    <a href="/Admin/Categories" class="nav-link rounded"><i class="fa-solid fa-list me-2"></i> Quản lý Danh mục</a>
                 </li>
 
-                <!-- Phần của Vinh: Mã giảm giá -->
+                <!-- Nhóm 3: Kinh doanh (Phần của Hưng) -->
                 <li class="nav-item mt-3">
-                    <small class="px-3 text-uppercase text-muted fw-bold">Khuyến mãi</small>
-                    <a href="/Admin/Coupons" class="nav-link mt-2"><i class="fa-solid fa-ticket me-2"></i> Mã giảm giá</a>
+                    <small class="px-3 text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Kinh doanh & Bán hàng</small>
+                    <a href="/Admin/Orders" class="nav-link rounded mt-1"><i class="fa-solid fa-cart-shopping me-2"></i> Quản lý Đơn hàng</a>
+                    <a href="/Admin/Reviews" class="nav-link rounded"><i class="fa-solid fa-star me-2"></i> Đánh giá khách hàng</a>
                 </li>
 
-                <!-- Phần của Tú: Tài khoản -->
+                <!-- Nhóm 4: Khuyến mãi (Phần của Vinh) -->
                 <li class="nav-item mt-3">
-                    <small class="px-3 text-uppercase text-muted fw-bold">Hệ thống</small>
-                    <a href="/Admin/Users" class="nav-link mt-2"><i class="fa-solid fa-users me-2"></i> Người dùng</a>
+                    <small class="px-3 text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Khuyến mãi</small>
+                    <a href="/Admin/Coupons" class="nav-link rounded mt-1"><i class="fa-solid fa-ticket me-2"></i> Mã giảm giá</a>
+                </li>
+
+                <!-- Nhóm 5: Hệ thống & Phân quyền (Phần của Tú - Leader) -->
+                <li class="nav-item mt-3">
+                    <small class="px-3 text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Hệ thống & Tài khoản</small>
+                    <a href="/Admin/Users" class="nav-link rounded mt-1"><i class="fa-solid fa-users-gear me-2"></i> Quản lý Người dùng</a>
                 </li>
             </ul>
+
+            <!-- Footer Sidebar: User info -->
+            <div class="p-3 border-top border-secondary mt-auto">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-circle me-2" style="width:34px; height:34px; border-radius:50%; background:#dc3545; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.85rem;">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="text-white small fw-bold text-truncate">@Context.Session.GetString("UserName")</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Vai trò: Quản trị viên</div>
+                    </div>
+                </div>
+            </div>
         </nav>
 
-        <!-- Main Content -->
-        <div class="flex-grow-1">
+        <!-- ================= MAIN CONTENT ================= -->
+        <div class="flex-grow-1 d-flex flex-column min-vh-100">
+            <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4 shadow-sm">
-                <div class="container-fluid">
-                    <span class="navbar-brand mb-0 h1">@ViewData["Title"]</span>
-                    <div class="d-flex">
-                        <a href="/" class="btn btn-outline-secondary btn-sm me-2">Ra website</a>
-                        <button class="btn btn-danger btn-sm">Đăng xuất</button>
+                <div class="container-fluid p-0">
+                    <span class="navbar-brand mb-0 h5 fw-bold text-dark">
+                        @ViewData["Title"]
+                    </span>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="/" class="btn btn-outline-secondary btn-sm" target="_blank">
+                            <i class="fa-solid fa-globe me-1"></i>Xem Website
+                        </a>
+                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fa-solid fa-right-from-bracket me-1"></i>Đăng xuất
+                            </button>
+                        </form>
                     </div>
                 </div>
             </nav>
-            <main class="p-4">
+
+            <!-- Main Body -->
+            <main class="p-4 flex-grow-1">
                 @RenderBody()
             </main>
+
+            <!-- Admin Footer -->
+            <footer class="bg-white border-top py-3 px-4 text-center text-muted small">
+                &copy; @DateTime.Now.Year LaptopShop System - Admin Control Panel. Phiên bản MVC 10.0
+            </footer>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script Bundles -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <!-- Phần của Huân: Nhúng sẵn Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Tự động active menu item theo URL -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const currentPath = window.location.pathname.toLowerCase();
+            document.querySelectorAll(".admin-sidebar .nav-link").forEach(link => {
+                const href = link.getAttribute("href")?.toLowerCase();
+                if (href && currentPath.startsWith(href)) {
+                    link.classList.add("active");
+                }
+            });
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

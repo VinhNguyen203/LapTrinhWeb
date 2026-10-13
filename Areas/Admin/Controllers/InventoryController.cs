@@ -1,4 +1,5 @@
-﻿
+
+using LaptopShop.Controllers;
 using LaptopShop.Models;
 using LaptopShop.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -8,8 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace LaptopShop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    
-    public class InventoryController : Controller
+    public class InventoryController : AdminBaseController
     {
         private readonly AppDbContext _context;
         private readonly IStockService _stockService;

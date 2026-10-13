@@ -1,3 +1,4 @@
+using LaptopShop.Controllers;
 using LaptopShop.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -5,8 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace LaptopShop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    // [Authorize(Roles = "Admin,Staff")] // Tạm thời comment khi chưa có module Auth của Tú
-    public class DashboardController : Controller
+    public class DashboardController : AdminBaseController
     {
         private readonly AppDbContext _context;
 

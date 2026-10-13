@@ -1,0 +1,98 @@
+@model LaptopShop.Models.AppUser
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Chi tiết người dùng";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-person-lines-fill me-2 text-info"></i>Chi tiết người dùng</h2>
+        <small class="text-muted">Xem thông tin đầy đủ của người dùng #@Model.Id</small>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0">
+            <!-- Avatar và tiêu đề -->
+            <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center"
+                     style="width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.3); font-size:2rem; color:white; font-weight:700;">
+                    @Model.FullName.Substring(0, 1).ToUpper()
+                </div>
+                <h4 class="text-white fw-bold mb-1">@Model.FullName</h4>
+                @if (Model.Role == "Admin")
+                {
+                    <span class="badge bg-danger fs-6"><i class="bi bi-shield-fill me-1"></i>Admin</span>
+                }
+                else
+                {
+                    <span class="badge bg-success fs-6"><i class="bi bi-person-fill me-1"></i>Customer</span>
+                }
+            </div>
+
+            <!-- Chi tiết thông tin -->
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <td class="fw-semibold text-muted" style="width:40%">
+                                <i class="bi bi-hash me-2"></i>ID
+                            </td>
+                            <td>#@Model.Id</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold text-muted">
+                                <i class="bi bi-person me-2"></i>Họ và tên
+                            </td>
+                            <td>@Model.FullName</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold text-muted">
+                                <i class="bi bi-envelope me-2"></i>Email
+                            </td>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold text-muted">
+                                <i class="bi bi-shield me-2"></i>Vai trò
+                            </td>
+                            <td>
+                                @if (Model.Role == "Admin")
+                                {
+                                    <span class="badge bg-danger">Admin</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Customer</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold text-muted">
+                                <i class="bi bi-calendar me-2"></i>Ngày tạo
+                            </td>
+                            <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="card-footer d-flex gap-2 justify-content-end">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                    <i class="bi bi-pencil me-2"></i>Chỉnh sửa
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                    <i class="bi bi-trash me-2"></i>Xóa
+                </a>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-list me-2"></i>Danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

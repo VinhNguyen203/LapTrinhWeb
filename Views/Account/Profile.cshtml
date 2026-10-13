@@ -1,0 +1,126 @@
+@model LaptopShop.Models.UserProfileViewModel
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- Tiêu đề trang -->
+            <div class="d-flex align-items-center mb-4">
+                <i class="bi bi-person-circle fs-1 text-primary me-3"></i>
+                <div>
+                    <h2 class="mb-0 fw-bold">Hồ sơ cá nhân</h2>
+                    <small class="text-muted">Quản lý và cập nhật thông tin tài khoản của bạn</small>
+                </div>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="row g-4">
+                <!-- Card thông tin cá nhân -->
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-primary text-white py-3">
+                            <h5 class="mb-0 fw-semibold"><i class="bi bi-person-lines-fill me-2"></i>Thông tin tài khoản</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form asp-action="Profile" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" asp-for="Id" />
+                                <input type="hidden" asp-for="Email" />
+                                <input type="hidden" asp-for="Role" />
+                                <input type="hidden" asp-for="CreatedAt" />
+
+                                <div class="row g-3">
+                                    <!-- Họ tên -->
+                                    <div class="col-md-6">
+                                        <label asp-for="FullName" class="form-label fw-semibold">
+                                            Họ và tên <span class="text-danger">*</span>
+                                        </label>
+                                        <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên..." />
+                                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                                    </div>
+
+                                    <!-- Số điện thoại -->
+                                    <div class="col-md-6">
+                                        <label asp-for="PhoneNumber" class="form-label fw-semibold">Số điện thoại</label>
+                                        <input asp-for="PhoneNumber" class="form-control" placeholder="Ví dụ: 0912345678" />
+                                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                                    </div>
+
+                                    <!-- Địa chỉ giao hàng -->
+                                    <div class="col-12">
+                                        <label asp-for="Address" class="form-label fw-semibold">Địa chỉ nhận hàng mặc định</label>
+                                        <input asp-for="Address" class="form-control" placeholder="Số nhà, ngõ, đường, quận/huyện, tỉnh/thành phố..." />
+                                        <span asp-validation-for="Address" class="text-danger small"></span>
+                                    </div>
+
+                                    <!-- Email (chỉ đọc) -->
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold text-muted">Email đăng nhập</label>
+                                        <input type="text" class="form-control bg-light" value="@Model.Email" readonly disabled />
+                                        <small class="form-text text-muted">Không thể thay đổi</small>
+                                    </div>
+
+                                    <!-- Vai trò (chỉ đọc) -->
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold text-muted">Vai trò hệ thống</label>
+                                        <input type="text" class="form-control bg-light" value="@(Model.Role == "Admin" ? "Quản trị viên (Admin)" : "Khách hàng (Customer)")" readonly disabled />
+                                    </div>
+
+                                    <!-- Ngày tạo (chỉ đọc) -->
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold text-muted">Ngày tham gia</label>
+                                        <input type="text" class="form-control bg-light" value="@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")" readonly disabled />
+                                    </div>
+
+                                    <!-- Nút lưu -->
+                                    <div class="col-12 mt-4">
+                                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                                            <i class="bi bi-floppy me-2"></i>Lưu thay đổi
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card bảo mật -->
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-warning text-dark py-3">
+                            <h5 class="mb-0 fw-semibold"><i class="bi bi-shield-lock me-2"></i>Bảo mật & Đổi mật khẩu</h5>
+                        </div>
+                        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-1">Mật khẩu đăng nhập</h6>
+                                <p class="text-muted small mb-0">Bạn nên đổi mật khẩu định kỳ để bảo đảm an toàn cho tài khoản cá nhân.</p>
+                            </div>
+                            <a asp-action="ChangePassword" class="btn btn-warning px-4 fw-semibold">
+                                <i class="bi bi-key me-2"></i>Đổi mật khẩu
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

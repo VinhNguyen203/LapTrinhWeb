@@ -1,4 +1,4 @@
-﻿<!-- Phần của Khoa & Huân: Trang chủ Client - Giao diện rực rỡ, hiện đại, sống động -->
+<!-- Phần của Khoa & Huân: Trang chủ Client - Giao diện rực rỡ, hiện đại, sống động -->
 @{
     ViewData["Title"] = "Trang chủ - Thế giới Laptop Đỉnh Cao";
 }
@@ -24,9 +24,12 @@
                 <a href="/Products" class="btn btn-light btn-lg rounded-pill fw-bold px-5 text-purple shadow-lg" style="color: #7c3aed; transition: all 0.3s;">
                     Khám Phá Ngay <i class="fa-solid fa-arrow-right ms-2"></i>
                 </a>
-                <a href="/Admin/Dashboard" class="btn btn-outline-light btn-lg rounded-pill fw-bold px-4">
-                    <i class="fa-solid fa-chart-pie me-2"></i> Dashboard Admin
-                </a>
+                @if (Context.Session.GetString("UserRole") == "Admin")
+                {
+                    <a href="/Admin/Dashboard" class="btn btn-outline-light btn-lg rounded-pill fw-bold px-4">
+                        <i class="fa-solid fa-chart-pie me-2"></i> Dashboard Admin
+                    </a>
+                }
             </div>
         </div>
         
@@ -102,7 +105,19 @@
             <p class="mb-0 text-muted small">Trở thành khách hàng thân thiết ngay hôm nay để nhận ưu đãi đặc biệt cho đơn hàng đầu tiên của bạn tại LaptopShop!</p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <a href="/Account/Register" class="btn btn-warning rounded-pill px-4 fw-bold text-dark shadow">Đăng Ký Ngay</a>
+            @if (string.IsNullOrEmpty(Context.Session.GetString("UserId")))
+            {
+                <button type="button" class="btn btn-warning rounded-pill px-4 fw-bold text-dark shadow"
+                        data-bs-toggle="modal" data-bs-target="#registerModal">
+                    <i class="fa-solid fa-gift me-1"></i> Đăng Ký Ngay
+                </button>
+            }
+            else
+            {
+                <a href="/Products" class="btn btn-warning rounded-pill px-4 fw-bold text-dark shadow">
+                    <i class="fa-solid fa-bag-shopping me-1"></i> Mua Sắm Ngay
+                </a>
+            }
         </div>
     </div>
 
