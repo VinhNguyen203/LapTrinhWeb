@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,36 +9,63 @@ namespace LaptopShop.Models
     {
         [Key]
         public int Id { get; set; }
-        public string Name { get; set; }
-        public ICollection<Product> Products { get; set; }
+
+        [Required(ErrorMessage = "Tên hãng không được để trống")]
+        [Display(Name = "Tên hãng")]
+        public string Name { get; set; } = string.Empty;
+
+        public ICollection<Product>? Products { get; set; } = new List<Product>();
     }
 
     public class Category
     {
         [Key]
         public int Id { get; set; }
-        public string Name { get; set; }
-        public ICollection<Product> Products { get; set; }
+
+        [Required(ErrorMessage = "Tên danh mục không được để trống")]
+        [Display(Name = "Tên danh mục")]
+        public string Name { get; set; } = string.Empty;
+
+        public ICollection<Product>? Products { get; set; } = new List<Product>();
     }
 
     public class Product
     {
         [Key]
         public int Id { get; set; }
-        public string Name { get; set; }
-        public decimal Price { get; set; }
-        public int StockQuantity { get; set; }
-        public string CPU { get; set; }
-        public string RAM { get; set; }
-        public string GPU { get; set; }
 
+        [Required(ErrorMessage = "Tên sản phẩm không được để trống")]
+        [Display(Name = "Tên sản phẩm")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng nhập giá sản phẩm")]
+        [Range(0, 1000000000, ErrorMessage = "Giá bán không hợp lệ")]
+        [Display(Name = "Giá bán")]
+        public decimal Price { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập số lượng tồn kho")]
+        [Range(0, 100000, ErrorMessage = "Số lượng tồn kho phải lớn hơn hoặc bằng 0")]
+        [Display(Name = "Số lượng tồn")]
+        public int StockQuantity { get; set; }
+
+        [Display(Name = "Bộ vi xử lý (CPU)")]
+        public string? CPU { get; set; }
+
+        [Display(Name = "Bộ nhớ RAM")]
+        public string? RAM { get; set; }
+
+        [Display(Name = "Card đồ họa (GPU)")]
+        public string? GPU { get; set; }
+
+        [Display(Name = "Hãng sản xuất")]
         public int? BrandId { get; set; }
         [ForeignKey("BrandId")]
-        public Brand Brand { get; set; }
+        public Brand? Brand { get; set; }
 
+        [Display(Name = "Danh mục")]
         public int? CategoryId { get; set; }
         [ForeignKey("CategoryId")]
-        public Category Category { get; set; }
+        public Category? Category { get; set; }
     }
 
     // ==========================================

@@ -1,61 +1,191 @@
-﻿<!-- Phần của Tú: _Layout (khách) -->
+<!-- Phần của Tú: _Layout (khách) | Cập nhật thêm search bar & active nav của Khoa -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="LaptopShop - Hệ thống mua bán laptop chính hãng, giá tốt nhất, bảo hành 24 tháng." />
     <title>@ViewData["Title"] - LaptopShop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <nav class="navbar navbar-expand-lg sticky-top navbar-client" id="mainNavbar">
             <div class="container">
-                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    <i class="fa-solid fa-laptop-code"></i> LAPTOPSHOP
+                <!-- Logo -->
+                <a class="navbar-brand fw-extrabold d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="logo-icon-wrap d-flex align-items-center justify-content-center rounded-3"
+                          style="width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1, #a855f7);">
+                        <i class="fa-solid fa-laptop text-white" style="font-size: 16px;"></i>
+                    </span>
+                    <span class="logo-text" style="background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.3rem;">
+                        LAPTOPSHOP
+                    </span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+                <!-- Thanh tìm kiếm giữa (desktop) - Phần của Khoa -->
+                <form action="/Products" method="get" class="d-none d-lg-flex flex-grow-1 mx-4" style="max-width: 480px;">
+                    <div class="input-group shadow-sm rounded-pill overflow-hidden" style="height: 42px;">
+                        <input type="text" name="search" class="form-control border-0 shadow-none ps-4 bg-light"
+                               placeholder="Tìm kiếm laptop, thương hiệu, cấu hình..."
+                               value="@(Context.Request.Query["search"].ToString())"
+                               style="font-size: 0.9rem;" />
+                        <button class="btn border-0 px-4 text-white fw-semibold"
+                                style="background: linear-gradient(135deg, #6366f1, #a855f7);" type="submit">
+                            <i class="fa-solid fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-expanded="false">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <!-- Link Trang Chủ -->
                         <li class="nav-item">
-                            <!-- Phần của Khoa: Link tới trang Sản phẩm -->
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">Sản Phẩm</a>
+                            <a class="nav-link fw-semibold nav-link-custom @(Context.Request.Path == "/" ? "active" : "")"
+                               asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="fa-solid fa-house me-1 d-lg-none"></i>Trang Chủ
+                            </a>
+                        </li>
+
+                        <!-- Link Sản Phẩm - Phần của Khoa -->
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold nav-link-custom @(Context.Request.Path.StartsWithSegments("/Products") ? "active" : "")"
+                               asp-area="" asp-controller="Products" asp-action="Index">
+                                <i class="fa-solid fa-laptop me-1 d-lg-none"></i>Sản Phẩm
+                            </a>
                         </li>
                     </ul>
-                    <div class="d-flex align-items-center">
+
+                    <!-- Nhóm nút bên phải -->
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Ô tìm kiếm mobile (chỉ hiện khi collapse) -->
+                        <form action="/Products" method="get" class="d-flex d-lg-none w-100 mb-2">
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control border-secondary-subtle rounded-start-pill"
+                                       placeholder="Tìm kiếm..." value="@(Context.Request.Query["search"].ToString())" />
+                                <button class="btn btn-primary rounded-end-pill px-3" type="submit">
+                                    <i class="fa-solid fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+
                         <!-- Phần của Vinh: Biểu tượng Giỏ hàng -->
-                        <a asp-area="" asp-controller="Cart" asp-action="Index" class="btn btn-light position-relative me-3 rounded-circle shadow-sm">
-                            <i class="fa-solid fa-cart-shopping"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+                        <a asp-area="" asp-controller="Cart" asp-action="Index"
+                           class="btn btn-light position-relative rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                           style="width: 42px; height: 42px;" title="Giỏ hàng của bạn">
+                            <i class="fa-solid fa-cart-shopping text-dark"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                                3
+                            </span>
                         </a>
-                        
+
                         <!-- Phần của Tú: Tài khoản / Đăng nhập -->
-                        <a asp-area="" asp-controller="Account" asp-action="Login" class="btn btn-gradient rounded-pill px-4">Đăng nhập</a>
+                        <a asp-area="" asp-controller="Account" asp-action="Login"
+                           class="btn rounded-pill px-4 fw-semibold text-white shadow-sm"
+                           style="background: linear-gradient(135deg, #6366f1, #a855f7); border: none; white-space: nowrap;">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i>Đăng nhập
+                        </a>
                     </div>
                 </div>
             </div>
         </nav>
     </header>
 
-    <div class="container mt-4 mb-5 pb-5">
-        <main role="main">
-            @RenderBody()
-        </main>
-    </div>
+    <!-- Nội dung chính - không bọc container để Views tự quản lý layout -->
+    <main role="main">
+        @RenderBody()
+    </main>
 
-    <footer class="border-top footer text-muted bg-white mt-auto py-4">
-        <div class="container text-center">
-            &copy; 2026 - LaptopShop - Thiết kế bởi Huân & Team.
+    <footer class="border-top footer-client mt-auto py-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Cột 1: Thương hiệu -->
+                <div class="col-lg-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="d-flex align-items-center justify-content-center rounded-3"
+                              style="width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1, #a855f7);">
+                            <i class="fa-solid fa-laptop text-white" style="font-size: 16px;"></i>
+                        </span>
+                        <span class="fw-extrabold fs-5" style="background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            LAPTOPSHOP
+                        </span>
+                    </div>
+                    <p class="text-muted small lh-lg">
+                        Hệ thống cửa hàng laptop chính hãng hàng đầu Việt Nam. Cam kết giá tốt nhất, bảo hành 24 tháng, giao hàng nhanh 2 giờ nội thành.
+                    </p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-muted fs-5 social-link"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="text-muted fs-5 social-link"><i class="fa-brands fa-tiktok"></i></a>
+                        <a href="#" class="text-muted fs-5 social-link"><i class="fa-brands fa-youtube"></i></a>
+                        <a href="#" class="text-muted fs-5 social-link"><i class="fa-brands fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <!-- Cột 2: Liên kết nhanh -->
+                <div class="col-lg-2 col-sm-6">
+                    <h6 class="fw-bold text-dark mb-3">Khám Phá</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="/" class="text-muted text-decoration-none footer-link">Trang chủ</a></li>
+                        <li class="mb-2"><a href="/Products" class="text-muted text-decoration-none footer-link">Tất cả Laptop</a></li>
+                        <li class="mb-2"><a href="/Products?priceRange=under15" class="text-muted text-decoration-none footer-link">Laptop dưới 15 triệu</a></li>
+                        <li class="mb-2"><a href="/Products?priceRange=above35" class="text-muted text-decoration-none footer-link">Laptop cao cấp</a></li>
+                    </ul>
+                </div>
+
+                <!-- Cột 3: Chính sách -->
+                <div class="col-lg-2 col-sm-6">
+                    <h6 class="fw-bold text-dark mb-3">Hỗ Trợ</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none footer-link">Chính sách bảo hành</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none footer-link">Hướng dẫn mua hàng</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none footer-link">Chính sách đổi trả</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none footer-link">Trả góp 0%</a></li>
+                    </ul>
+                </div>
+
+                <!-- Cột 4: Liên hệ -->
+                <div class="col-lg-4">
+                    <h6 class="fw-bold text-dark mb-3">Liên Hệ</h6>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-2"><i class="fa-solid fa-location-dot text-primary me-2 fa-fw"></i>123 Đường Công Nghệ, Quận 1, TP.HCM</li>
+                        <li class="mb-2"><i class="fa-solid fa-phone text-success me-2 fa-fw"></i>1800 6789 (Miễn phí 8:00 - 22:00)</li>
+                        <li class="mb-2"><i class="fa-solid fa-envelope text-warning me-2 fa-fw"></i>hotro@laptopshop.vn</li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="my-4 text-muted opacity-25" />
+            <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted gap-2">
+                <span>&copy; 2026 - LaptopShop - Bản quyền thuộc về nhóm dự án. All rights reserved.</span>
+                <span>Thiết kế & phát triển bởi <strong>Khoa</strong>, <strong>Huân</strong>, <strong>Tú</strong>, <strong>Hưng</strong>, <strong>Vinh</strong></span>
+            </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Navbar scroll effect - thu nhỏ khi cuộn xuống
+        window.addEventListener('scroll', function () {
+            const navbar = document.getElementById('mainNavbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('navbar-scrolled');
+            } else {
+                navbar.classList.remove('navbar-scrolled');
+            }
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

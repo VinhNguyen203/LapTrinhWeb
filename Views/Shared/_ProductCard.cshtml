@@ -1,0 +1,117 @@
+@model LaptopShop.Models.Product
+@{
+    var originalPrice = Model.Price * 1.15m;
+    bool isOutOfStock = Model.StockQuantity <= 0;
+}
+
+<div class="card card-modern h-100 p-3 border-0 shadow-sm position-relative overflow-hidden product-card-hover">
+    <!-- Nhãn giảm giá hoặc trạng thái -->
+    <div class="position-absolute top-0 start-0 m-3 z-index-1">
+        @if (isOutOfStock)
+        {
+            <span class="badge bg-secondary text-white px-2 py-1 rounded-pill fw-semibold shadow-sm">
+                Tạm hết hàng
+            </span>
+        }
+        else
+        {
+            <span class="badge text-white px-3 py-1 rounded-pill fw-bold shadow-sm" style="background: linear-gradient(135deg, #ff416c, #ff4b2b); font-size: 0.75rem;">
+                -15% GIẢM SỐC
+            </span>
+        }
+    </div>
+
+    <!-- Hãng sản xuất badge góc phải -->
+    @if (Model.Brand != null)
+    {
+        <div class="position-absolute top-0 end-0 m-3 z-index-1">
+            <span class="badge bg-dark bg-opacity-75 text-white px-2 py-1 rounded-3 small">
+                @Model.Brand.Name
+            </span>
+        </div>
+    }
+
+    <!-- Khung hình ảnh sản phẩm với hiệu ứng gradient mềm mại -->
+    <a href="/Products/Details/@Model.Id" class="text-decoration-none d-block">
+        <div class="text-center p-4 rounded-4 mb-3 position-relative product-img-box" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);">
+            <div class="py-3 product-icon-wrapper">
+                <i class="fa-solid fa-laptop text-primary" style="font-size: 68px; filter: drop-shadow(0 10px 15px rgba(99, 102, 241, 0.25)); transition: transform 0.3s ease;"></i>
+            </div>
+            <span class="badge bg-white text-primary border position-absolute bottom-0 end-0 m-2 px-2 py-1 rounded-3 small shadow-sm fw-semibold">
+                <i class="fa-solid fa-shield-halved me-1"></i>Chính hãng 100%
+            </span>
+        </div>
+    </a>
+
+    <!-- Thông tin sản phẩm -->
+    <div class="card-body p-2 d-flex flex-column">
+        <div class="mb-2 d-flex justify-content-between align-items-center">
+            <span class="text-muted small fw-semibold text-truncate">
+                <i class="fa-solid fa-layer-group text-purple me-1" style="color: #8b5cf6;"></i>
+                @(Model.Category?.Name ?? "Laptop")
+            </span>
+            @if (Model.StockQuantity > 0)
+            {
+                <span class="small text-success fw-semibold"><i class="fa-solid fa-circle-check me-1"></i>Còn hàng</span>
+            }
+        </div>
+
+        <!-- Tên sản phẩm -->
+        <h5 class="card-title fw-bold mb-2">
+            <a href="/Products/Details/@Model.Id" class="text-dark text-decoration-none product-title-link" title="@Model.Name">
+                @Model.Name
+            </a>
+        </h5>
+
+        <!-- Cấu hình phần cứng tóm tắt -->
+        <div class="bg-light p-2 rounded-3 mb-3 small text-secondary">
+            <div class="text-truncate mb-1">
+                <i class="fa-solid fa-memory me-1 text-primary"></i>RAM @(Model.RAM ?? "Đang cập nhật")
+            </div>
+            <div class="text-truncate">
+                <i class="fa-solid fa-microchip me-1 text-warning"></i>@(Model.CPU ?? "Đang cập nhật")
+            </div>
+        </div>
+
+        <!-- Giá tiền và nút thao tác -->
+        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+            <div>
+                <span class="text-danger fw-extrabold fs-5" style="letter-spacing: -0.5px;">@Model.Price.ToString("N0")đ</span><br />
+                <del class="text-muted small text-decoration-line-through">@originalPrice.ToString("N0")đ</del>
+            </div>
+            <div class="d-flex gap-1">
+                <a href="/Products/Details/@Model.Id" class="btn btn-outline-primary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" title="Xem chi tiết">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <button type="button" class="btn btn-gradient rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; border: none;" title="Thêm vào giỏ hàng" @(isOutOfStock ? "disabled" : "")>
+                    <i class="fa-solid fa-cart-plus"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .product-card-hover {
+        border-radius: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .product-card-hover:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 15px 30px rgba(99, 102, 241, 0.18) !important;
+    }
+    .product-card-hover:hover .product-icon-wrapper i {
+        transform: scale(1.08);
+    }
+    .product-title-link {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 44px;
+        transition: color 0.2s;
+    }
+    .product-title-link:hover {
+        color: #6366f1 !important;
+    }
+</style>

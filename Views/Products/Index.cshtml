@@ -1,120 +1,319 @@
-﻿@model IEnumerable<LaptopShop.Models.Product>
-
+@model IEnumerable<LaptopShop.Models.Product>
 @{
-    ViewData["Title"] = "Danh Sách Sản Phẩm";
+    ViewData["Title"] = "Danh Sách Laptop - Tìm Kiếm & Bộ Lọc";
+    var brandsList = ViewBag.BrandsList as List<LaptopShop.Models.Brand> ?? new List<LaptopShop.Models.Brand>();
+    var categoriesList = ViewBag.CategoriesList as List<LaptopShop.Models.Category> ?? new List<LaptopShop.Models.Category>();
+    var ramList = ViewBag.RamList as List<string> ?? new List<string>();
+
+    string currentSearch = ViewBag.CurrentSearch as string ?? "";
+    int? currentBrandId = ViewBag.CurrentBrandId;
+    int? currentCategoryId = ViewBag.CurrentCategoryId;
+    string currentRam = ViewBag.CurrentRam as string ?? "";
+    string currentPriceRange = ViewBag.CurrentPriceRange as string ?? "";
+    decimal? currentMinPrice = ViewBag.CurrentMinPrice;
+    decimal? currentMaxPrice = ViewBag.CurrentMaxPrice;
+    string currentSort = ViewBag.CurrentSort as string ?? "";
+    int totalItems = ViewBag.TotalItems ?? (Model?.Count() ?? 0);
+
+    bool hasActiveFilter = !string.IsNullOrEmpty(currentSearch) 
+        || currentBrandId.HasValue 
+        || currentCategoryId.HasValue 
+        || !string.IsNullOrEmpty(currentRam) 
+        || !string.IsNullOrEmpty(currentPriceRange)
+        || currentMinPrice.HasValue 
+        || currentMaxPrice.HasValue;
 }
 
-<style>
-    body {
-        /* Nền đồng bộ với trang chủ */
-        background: linear-gradient(180deg, #f8fafc 0%, #ede9fe 100%); 
-        min-height: 100vh;
-    }
+<div class="container py-4">
+    <!-- Breadcrumb điều hướng -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted"><i class="fa-solid fa-house me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item active fw-semibold text-primary" aria-current="page">Sản phẩm laptop</li>
+        </ol>
+    </nav>
 
-    /* Hiệu ứng thẻ Card hiện đại từ Khoa & Huân */
-    .card-modern {
-        border-radius: 20px;
-        background: #ffffff;
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    }
-    
-    .card-modern:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(99, 102, 241, 0.25) !important;
-    }
+    <div class="row g-4">
+        <!-- Cột Trái: BỘ LỌC TÌM KIẾM NÂNG CAO -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 sticky-top" style="top: 80px; z-index: 10;">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-filter text-primary me-2"></i>Bộ Lọc Nâng Cao
+                    </h5>
+                    @if (hasActiveFilter)
+                    {
+                        <a href="/Products" class="btn btn-sm btn-link text-danger text-decoration-none p-0 fw-semibold" title="Xóa toàn bộ bộ lọc">
+                            <i class="fa-solid fa-rotate-left me-1"></i>Đặt lại
+                        </a>
+                    }
+                </div>
 
-    /* Font chữ siêu đậm cho giá */
-    .fw-extrabold {
-        font-weight: 800;
-    }
+                <form method="get" action="/Products" id="filterForm">
+                    <!-- Giữ lại sắp xếp nếu có -->
+                    <input type="hidden" name="sort" value="@currentSort" />
 
-    /* Nút giỏ hàng gradient */
-    .btn-gradient-cart {
-        width: 45px; 
-        height: 45px; 
-        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); 
-        color: white; 
-        border: none; 
-        transition: transform 0.2s;
-    }
-    .btn-gradient-cart:hover {
-        transform: scale(1.1);
-        color: white;
-    }
-</style>
-
-<div class="container py-5">
-    
-    <!-- Tiêu đề trang đồng bộ phong cách -->
-    <div class="d-flex justify-content-between align-items-end mb-4 px-2 border-bottom pb-3">
-        <div>
-            <span class="text-uppercase fw-bold text-primary small" style="letter-spacing: 0.1em;">Kho Hàng 2026</span>
-            <h3 class="fw-bold mb-0 text-dark display-6">Tất Cả Sản Phẩm <i class="fa-solid fa-layer-group text-warning ms-1"></i></h3>
-        </div>
-    </div>
-
-    <!-- Lưới sản phẩm rực rỡ -->
-    <div class="row g-4 mb-5">
-        @if (Model != null && Model.Any())
-        {
-            foreach (var item in Model)
-            {
-                var originalPrice = item.Price * 1.15m; // Giá gốc tượng trưng
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-modern h-100 p-3 border-0 shadow-lg position-relative overflow-hidden">
-                        
-                        <!-- Nhãn giảm giá rực rỡ -->
-                        <div class="position-absolute top-0 start-0 m-3 z-index-1">
-                            <span class="badge text-white px-3 py-2 rounded-pill fw-bold shadow-sm" style="background: linear-gradient(135deg, #ff416c, #ff4b2b);">
-                                -15% GIẢM SỐC
-                            </span>
+                    <!-- 1. Tìm kiếm từ khóa -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-secondary">Từ khóa tìm kiếm</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                            <input type="text" name="search" class="form-control border-start-0" 
+                                   placeholder="Tên máy, CPU, GPU..." value="@currentSearch" />
                         </div>
+                    </div>
 
-                        <!-- KHUNG HÌNH ẢNH SẢN PHẨM BÊ NGUYÊN TỪ TRANG CHỦ -->
-                        <div class="text-center p-4 rounded-4 mb-3 position-relative" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);">
-                            <div class="py-4">
-                                <i class="fa-solid fa-laptop text-primary" style="font-size: 70px; filter: drop-shadow(0 8px 12px rgba(99, 102, 241, 0.25));"></i>
-                            </div>
-                            <span class="badge bg-dark text-white position-absolute bottom-0 end-0 m-2 px-2 py-1 rounded-3 small shadow-sm">Chính hãng</span>
-                        </div>
+                    <!-- 2. Hãng sản xuất -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-secondary">Hãng sản xuất</label>
+                        <select name="brandId" class="form-select select-custom" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">-- Tất cả các hãng --</option>
+                            @foreach (var brand in brandsList)
+                            {
+                                if (currentBrandId.HasValue && currentBrandId.Value == brand.Id)
+                                {
+                                    <option value="@brand.Id" selected="selected">@brand.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@brand.Id">@brand.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
 
-                        <!-- THÔNG TIN SẢN PHẨM TỪ CƠ SỞ DỮ LIỆU -->
-                        <div class="card-body p-2 d-flex flex-column">
-                            <div class="mb-2">
-                                <span class="text-muted small fw-semibold"><i class="fa-solid fa-tag text-purple me-1" style="color: #a855f7;"></i> Gaming & Đồ Họa</span>
+                    <!-- 3. Danh mục nhu cầu -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-secondary">Nhu cầu sử dụng</label>
+                        <select name="categoryId" class="form-select select-custom" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">-- Tất cả danh mục --</option>
+                            @foreach (var cat in categoriesList)
+                            {
+                                if (currentCategoryId.HasValue && currentCategoryId.Value == cat.Id)
+                                {
+                                    <option value="@cat.Id" selected="selected">@cat.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@cat.Id">@cat.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <!-- 4. Dung lượng RAM -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-secondary">Dung lượng RAM</label>
+                        <select name="ram" class="form-select select-custom" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">-- Tất cả dung lượng RAM --</option>
+                            @{
+                                var standardRams = new List<string> { "8GB", "16GB", "32GB", "64GB" };
+                                var allRams = standardRams.Union(ramList).Distinct().ToList();
+                            }
+                            @foreach (var r in allRams)
+                            {
+                                if (currentRam == r)
+                                {
+                                    <option value="@r" selected="selected">RAM @r</option>
+                                }
+                                else
+                                {
+                                    <option value="@r">RAM @r</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <!-- 5. Mức giá lọc nhanh -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-secondary">Khoảng giá nhanh</label>
+                        <div class="d-flex flex-column gap-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="priceRange" id="priceAll" value="" 
+                                       @(string.IsNullOrEmpty(currentPriceRange) && !currentMinPrice.HasValue && !currentMaxPrice.HasValue ? "checked" : "") 
+                                       onchange="document.getElementById('filterForm').submit()">
+                                <label class="form-check-label small" for="priceAll">Tất cả mức giá</label>
                             </div>
-                            
-                            <!-- Tên máy lấy từ Database -->
-                            <h5 class="card-title fw-bold text-dark mb-2" style="font-size: 1.15rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 44px;">
-                                @item.Name
-                            </h5>
-                            
-                            <!-- Cấu hình lấy từ Database -->
-                            <p class="text-secondary small mb-3 bg-light p-2 rounded-3 text-truncate">
-                                <i class="fa-solid fa-microchip me-1 text-primary"></i> RAM @item.RAM | @item.CPU
-                            </p>
-                            
-                            <!-- Giá tiền và nút giỏ hàng -->
-                            <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="text-danger fw-extrabold fs-5" style="letter-spacing: -0.5px;">@item.Price.ToString("N0")đ</span><br/>
-                                    <del class="text-muted small text-decoration-line-through">@originalPrice.ToString("N0")đ</del>
-                                </div>
-                                <button class="btn btn-gradient-cart rounded-circle shadow-sm d-flex align-items-center justify-content-center" title="Thêm vào giỏ hàng">
-                                    <i class="fa-solid fa-cart-plus fs-5"></i>
-                                </button>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="priceRange" id="priceUnder15" value="under15" 
+                                       @(currentPriceRange == "under15" ? "checked" : "") 
+                                       onchange="document.getElementById('filterForm').submit()">
+                                <label class="form-check-label small" for="priceUnder15">Dưới 15 triệu</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="priceRange" id="price15to25" value="15to25" 
+                                       @(currentPriceRange == "15to25" ? "checked" : "") 
+                                       onchange="document.getElementById('filterForm').submit()">
+                                <label class="form-check-label small" for="price15to25">Từ 15 - 25 triệu</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="priceRange" id="price25to35" value="25to35" 
+                                       @(currentPriceRange == "25to35" ? "checked" : "") 
+                                       onchange="document.getElementById('filterForm').submit()">
+                                <label class="form-check-label small" for="price25to35">Từ 25 - 35 triệu</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="priceRange" id="priceAbove35" value="above35" 
+                                       @(currentPriceRange == "above35" ? "checked" : "") 
+                                       onchange="document.getElementById('filterForm').submit()">
+                                <label class="form-check-label small" for="priceAbove35">Trên 35 triệu</label>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="col-12 text-center py-5">
-                <p class="text-muted fs-5">Chưa có sản phẩm nào trong database.</p>
+
+                    <!-- 6. Khoảng giá tùy chọn (Min - Max) -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase text-secondary">Hoặc tự nhập khoảng giá</label>
+                        <div class="row g-1">
+                            <div class="col-6">
+                                <input type="number" name="minPrice" class="form-control form-control-sm" placeholder="Từ (₫)" value="@currentMinPrice" />
+                            </div>
+                            <div class="col-6">
+                                <input type="number" name="maxPrice" class="form-control form-control-sm" placeholder="Đến (₫)" value="@currentMaxPrice" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nút bấm submit và reset -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill fw-semibold shadow-sm" 
+                                style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;">
+                            <i class="fa-solid fa-filter me-1"></i> Áp Dụng Bộ Lọc
+                        </button>
+                        @if (hasActiveFilter)
+                        {
+                            <a href="/Products" class="btn btn-outline-secondary rounded-pill btn-sm">
+                                <i class="fa-solid fa-xmark me-1"></i> Xóa Bộ Lọc
+                            </a>
+                        }
+                    </div>
+                </form>
             </div>
-        }
+        </div>
+
+        <!-- Cột Phải: DANH SÁCH SẢN PHẨM & THANH CÔNG CỤ -->
+        <div class="col-lg-9">
+            <!-- Thanh Công Cụ (Header Bar) -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-6">
+                        <h5 class="fw-bold mb-0 text-dark">
+                            Danh Sách Laptop
+                            <span class="badge bg-primary bg-opacity-10 text-primary fs-6 fw-normal ms-2 rounded-pill px-3 py-1">
+                                @totalItems sản phẩm
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center justify-content-md-end gap-2">
+                            <label class="small text-muted text-nowrap fw-semibold"><i class="fa-solid fa-arrow-down-short-wide me-1"></i>Sắp xếp:</label>
+                            <form method="get" action="/Products" id="sortForm" class="d-inline">
+                                <!-- Giữ nguyên tất cả filter khi đổi sort -->
+                                <input type="hidden" name="search" value="@currentSearch" />
+                                <input type="hidden" name="brandId" value="@currentBrandId" />
+                                <input type="hidden" name="categoryId" value="@currentCategoryId" />
+                                <input type="hidden" name="ram" value="@currentRam" />
+                                <input type="hidden" name="priceRange" value="@currentPriceRange" />
+                                <input type="hidden" name="minPrice" value="@currentMinPrice" />
+                                <input type="hidden" name="maxPrice" value="@currentMaxPrice" />
+                                <select name="sort" class="form-select form-select-sm rounded-pill px-3" onchange="document.getElementById('sortForm').submit()" style="min-width: 170px;">
+                                    <option value="" selected="@(string.IsNullOrEmpty(currentSort))">Mới nhất</option>
+                                    <option value="price_asc" selected="@(currentSort == "price_asc")">Giá tăng dần</option>
+                                    <option value="price_desc" selected="@(currentSort == "price_desc")">Giá giảm dần</option>
+                                    <option value="name_asc" selected="@(currentSort == "name_asc")">Tên máy: A - Z</option>
+                                    <option value="name_desc" selected="@(currentSort == "name_desc")">Tên máy: Z - A</option>
+                                </select>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Các Tag Bộ Lọc Đang Áp Dụng (Active Filter Badges) -->
+                @if (hasActiveFilter)
+                {
+                    <div class="d-flex flex-wrap gap-2 align-items-center pt-3 mt-3 border-top">
+                        <span class="small text-muted fw-semibold"><i class="fa-solid fa-tags me-1"></i>Đang lọc theo:</span>
+                        
+                        @if (!string.IsNullOrEmpty(currentSearch))
+                        {
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-2">
+                                Từ khóa: "@currentSearch"
+                                <a href="@Url.Action("Index", new { brandId = currentBrandId, categoryId = currentCategoryId, ram = currentRam, priceRange = currentPriceRange, minPrice = currentMinPrice, maxPrice = currentMaxPrice, sort = currentSort })" class="text-danger ms-2 text-decoration-none">✕</a>
+                            </span>
+                        }
+                        @if (currentBrandId.HasValue)
+                        {
+                            var bName = brandsList.FirstOrDefault(b => b.Id == currentBrandId.Value)?.Name ?? "Hãng #" + currentBrandId;
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2">
+                                Hãng: @bName
+                                <a href="@Url.Action("Index", new { search = currentSearch, categoryId = currentCategoryId, ram = currentRam, priceRange = currentPriceRange, minPrice = currentMinPrice, maxPrice = currentMaxPrice, sort = currentSort })" class="text-danger ms-2 text-decoration-none">✕</a>
+                            </span>
+                        }
+                        @if (currentCategoryId.HasValue)
+                        {
+                            var cName = categoriesList.FirstOrDefault(c => c.Id == currentCategoryId.Value)?.Name ?? "Danh mục #" + currentCategoryId;
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2">
+                                Danh mục: @cName
+                                <a href="@Url.Action("Index", new { search = currentSearch, brandId = currentBrandId, ram = currentRam, priceRange = currentPriceRange, minPrice = currentMinPrice, maxPrice = currentMaxPrice, sort = currentSort })" class="text-danger ms-2 text-decoration-none">✕</a>
+                            </span>
+                        }
+                        @if (!string.IsNullOrEmpty(currentRam))
+                        {
+                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3 py-2">
+                                RAM: @currentRam
+                                <a href="@Url.Action("Index", new { search = currentSearch, brandId = currentBrandId, categoryId = currentCategoryId, priceRange = currentPriceRange, minPrice = currentMinPrice, maxPrice = currentMaxPrice, sort = currentSort })" class="text-danger ms-2 text-decoration-none">✕</a>
+                            </span>
+                        }
+                        @if (!string.IsNullOrEmpty(currentPriceRange))
+                        {
+                            string priceLabel = currentPriceRange switch
+                            {
+                                "under15" => "Dưới 15 triệu",
+                                "15to25" => "15 - 25 triệu",
+                                "25to35" => "25 - 35 triệu",
+                                "above35" => "Trên 35 triệu",
+                                _ => currentPriceRange
+                            };
+                            <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 rounded-pill px-3 py-2">
+                                Giá: @priceLabel
+                                <a href="@Url.Action("Index", new { search = currentSearch, brandId = currentBrandId, categoryId = currentCategoryId, ram = currentRam, minPrice = currentMinPrice, maxPrice = currentMaxPrice, sort = currentSort })" class="text-danger ms-2 text-decoration-none">✕</a>
+                            </span>
+                        }
+                        <a href="/Products" class="small text-danger fw-semibold text-decoration-none ms-2">Xóa tất cả</a>
+                    </div>
+                }
+            </div>
+
+            <!-- Lưới Sản Phẩm qua Partial _ProductCard -->
+            <div class="row g-4 mb-4">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <div class="col-xl-4 col-md-6">
+                            @await Html.PartialAsync("_ProductCard", item)
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center py-5">
+                        <div class="p-5 bg-white rounded-5 shadow-sm">
+                            <i class="fa-solid fa-magnifying-glass fa-4x text-muted mb-3 opacity-50"></i>
+                            <h4 class="fw-bold text-dark mb-2">Không tìm thấy sản phẩm phù hợp</h4>
+                            <p class="text-secondary small mb-4">
+                                Rất tiếc, không có chiếc Laptop nào khớp với tiêu chí tìm kiếm hoặc bộ lọc hiện tại của bạn.
+                            </p>
+                            <a href="/Products" class="btn btn-primary rounded-pill px-4 fw-bold">
+                                <i class="fa-solid fa-rotate-left me-1"></i> Xem tất cả sản phẩm
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Phân Trang qua Partial _Pagination -->
+            @await Html.PartialAsync("_Pagination")
+        </div>
     </div>
 </div>

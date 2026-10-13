@@ -1,0 +1,137 @@
+@model LaptopShop.Models.Product
+@{
+    ViewData["Title"] = "Thêm Sản Phẩm Mới";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="/Admin/Products" class="text-decoration-none">Sản phẩm</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Thêm mới</li>
+                    </ol>
+                </nav>
+                <h4 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-plus-circle me-2 text-primary"></i>Thêm Mới Sản Phẩm Laptop</h4>
+            </div>
+            <a href="/Admin/Products" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 p-md-5">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 mb-4" role="alert"></div>
+
+                    <!-- Nhóm 1: Thông tin cơ bản -->
+                    <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-circle-info me-2"></i>1. Thông tin chung
+                    </h5>
+                    
+                    <div class="mb-4">
+                        <label asp-for="Name" class="form-label fw-semibold">Tên sản phẩm Laptop <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fa-solid fa-laptop text-muted"></i></span>
+                            <input asp-for="Name" class="form-control" placeholder="Ví dụ: ASUS ROG Zephyrus G16 GU605MI..." />
+                        </div>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="BrandId" class="form-label fw-semibold">Hãng sản xuất <span class="text-danger">*</span></label>
+                            <select asp-for="BrandId" class="form-select" asp-items="ViewBag.Brands">
+                                <option value="">-- Chọn Hãng --</option>
+                            </select>
+                            <span asp-validation-for="BrandId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CategoryId" class="form-label fw-semibold">Danh mục phân loại <span class="text-danger">*</span></label>
+                            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                <option value="">-- Chọn Danh mục --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="Price" class="form-label fw-semibold">Giá niêm yết (VNĐ) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-danger fw-bold">₫</span>
+                                <input asp-for="Price" type="number" step="10000" min="0" class="form-control" placeholder="Ví dụ: 25000000" />
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="StockQuantity" class="form-label fw-semibold">Số lượng tồn kho ban đầu <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-boxes-stacked text-muted"></i></span>
+                                <input asp-for="StockQuantity" type="number" min="0" class="form-control" placeholder="Ví dụ: 20" />
+                            </div>
+                            <span asp-validation-for="StockQuantity" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Nhóm 2: Cấu hình kỹ thuật -->
+                    <h5 class="fw-bold text-primary mb-3 border-bottom pb-2 mt-4">
+                        <i class="fa-solid fa-microchip me-2"></i>2. Cấu hình phần cứng
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label asp-for="RAM" class="form-label fw-semibold">Bộ nhớ RAM</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-memory text-muted"></i></span>
+                                <input asp-for="RAM" id="ramInput" class="form-control" placeholder="Ví dụ: 16GB, 32GB..." />
+                            </div>
+                            <div class="mt-2 d-flex gap-1 flex-wrap">
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ram-pill" onclick="setRam('8GB')">8GB</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ram-pill" onclick="setRam('16GB')">16GB</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ram-pill" onclick="setRam('32GB')">32GB</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ram-pill" onclick="setRam('64GB')">64GB</button>
+                            </div>
+                            <span asp-validation-for="RAM" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="CPU" class="form-label fw-semibold">Bộ vi xử lý (CPU)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-microchip text-muted"></i></span>
+                                <input asp-for="CPU" class="form-control" placeholder="Ví dụ: Intel Core i7-13700H" />
+                            </div>
+                            <span asp-validation-for="CPU" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="GPU" class="form-label fw-semibold">Card đồ họa (GPU)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-tv text-muted"></i></span>
+                                <input asp-for="GPU" class="form-control" placeholder="Ví dụ: RTX 4060 8GB" />
+                            </div>
+                            <span asp-validation-for="GPU" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-3 border-top d-flex justify-content-end gap-2">
+                        <a href="/Admin/Products" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-semibold shadow-sm">
+                            <i class="fa-solid fa-save me-2"></i>Lưu Sản Phẩm
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function setRam(val) {
+            document.getElementById('ramInput').value = val;
+        }
+    </script>
+}
