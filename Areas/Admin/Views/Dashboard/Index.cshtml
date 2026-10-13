@@ -1,123 +1,181 @@
-<!-- Areas/Admin/Views/Dashboard/Index.cshtml -->
-<!-- Phần của Huân: Giao diện Dashboard & Thống kê -->
 @{
-    ViewData["Title"] = "Tổng quan hệ thống";
+    ViewData["Title"] = "Trang Chủ Quản Trị (Dashboard)";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <h2 class="fw-bold mb-4">Dashboard Thống Kê</h2>
-    
-    <!-- 4 Thẻ Số liệu -->
-    <div class="row g-4 mb-4">
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Bảng Điều Khiển Hệ Thống</h1>
+            <p class="text-muted small mb-0">Tổng quan số liệu kinh doanh và biểu đồ tăng trưởng của LaptopShop.</p>
+        </div>
+    </div>
+
+    <!-- 4 Thẻ Thống Kê Số Liệu (Cards) -->
+    <div class="row">
         <!-- Doanh thu -->
-        <div class="col-md-3">
-            <div class="card card-modern bg-primary text-white h-100" style="background: var(--primary-gradient) !important;">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow-sm h-100 py-2 border-0 border-start border-4 border-primary">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="mb-1 opacity-75">Doanh thu tháng này</p>
-                            <h3 class="fw-bold mb-0">125.500.000đ</h3>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Doanh Thu (Hoàn Thành)</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">@string.Format("{0:N0}", ViewBag.TotalRevenue ?? 0) VNĐ</div>
                         </div>
-                        <i class="fa-solid fa-money-bill-wave fa-2x opacity-50"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Đơn Pending -->
-        <div class="col-md-3">
-            <div class="card card-modern bg-warning text-dark h-100">
+
+        <!-- Đơn hàng chờ xử lý -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow-sm h-100 py-2 border-0 border-start border-4 border-warning">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="mb-1 opacity-75">Đơn hàng chờ duyệt</p>
-                            <h3 class="fw-bold mb-0">12 Đơn</h3>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Đơn Chờ Xử Lý (Pending)</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">@(ViewBag.PendingOrdersCount ?? 0) đơn</div>
                         </div>
-                        <i class="fa-solid fa-clock fa-2x opacity-50"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Sản phẩm kinh doanh -->
-        <div class="col-md-3">
-            <div class="card card-modern bg-success text-white h-100">
+
+        <!-- Tổng sản phẩm -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow-sm h-100 py-2 border-0 border-start border-4 border-success">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="mb-1 opacity-75">Sản phẩm đang bán</p>
-                            <h3 class="fw-bold mb-0">45 Mẫu</h3>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tổng Sản Phẩm Laptop</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">@(ViewBag.ActiveProductsCount ?? 0) máy</div>
                         </div>
-                        <i class="fa-solid fa-laptop fa-2x opacity-50"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-laptop fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Khách mới -->
-        <div class="col-md-3">
-            <div class="card card-modern bg-info text-white h-100">
+
+        <!-- Khách hàng -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow-sm h-100 py-2 border-0 border-start border-4 border-info">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="mb-1 opacity-75">Khách mới tháng này</p>
-                            <h3 class="fw-bold mb-0">+32</h3>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Khách Hàng Đã Mua</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">@(ViewBag.TotalCustomers ?? 0) người</div>
                         </div>
-                        <i class="fa-solid fa-users fa-2x opacity-50"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Biểu đồ Chart.js -->
-    <div class="row g-4">
-        <div class="col-md-8">
-            <div class="card card-modern p-3">
-                <h5 class="fw-bold mb-3">Doanh thu 7 ngày gần nhất</h5>
-                <canvas id="revenueChart" height="100"></canvas>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-modern p-3">
-                <h5 class="fw-bold mb-3">Tỷ trọng theo hãng</h5>
-                <canvas id="brandChart" height="200"></canvas>
+    <!-- Khu Vực Biểu Đồ Thống Kê -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line me-1"></i> Biểu Đồ Doanh Thu Gần Đây</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 350px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Khởi tạo biểu đồ Doanh thu (Line/Bar chart)
-        const revCtx = document.getElementById('revenueChart').getContext('2d');
-        new Chart(revCtx, {
-            type: 'line',
-            data: {
-                labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
-                datasets: [{
-                    label: 'Doanh thu (VNĐ)',
-                    data: [15000000, 20000000, 0, 35000000, 12000000, 45000000, 28000000],
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4 // Làm mượt đường cong
-                }]
-            },
-            options: { responsive: true }
-        });
+        document.addEventListener("DOMContentLoaded", function () {
+            // Sử dụng Url.Action để đảm bảo ASP.NET Core tự tạo đúng đường dẫn
+            const apiUrl = '@Url.Action("GetRevenueChartData", "Dashboard", new { area = "Admin" })';
+            
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Mạng lỗi hoặc không tìm thấy API');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Dữ liệu nhận được:", data); // Debug F12
+                    
+                    let labels = [];
+                    let revenues = [];
 
-        // Khởi tạo biểu đồ Tỷ trọng (Doughnut/Pie chart)
-        const brandCtx = document.getElementById('brandChart').getContext('2d');
-        new Chart(brandCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Dell', 'Asus', 'MacBook', 'HP', 'Khác'],
-                datasets: [{
-                    data: [35, 25, 20, 10, 10],
-                    backgroundColor: ['#ff9a9e', '#fecfef', '#667eea', '#764ba2', '#e4e5e6']
-                }]
-            },
-            options: { responsive: true }
+                    // Kiểm tra và bóc tách dữ liệu 100% không trượt
+                    if (data && data.length > 0) {
+                        labels = data.map(item => item.date !== undefined ? item.date : item.Date);
+                        revenues = data.map(item => item.revenue !== undefined ? item.revenue : item.Revenue);
+                    } else {
+                        labels = ['Chưa có dữ liệu'];
+                        revenues = [0];
+                    }
+
+                    const ctx = document.getElementById('revenueChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Doanh thu thực tế (VNĐ)',
+                                data: revenues,
+                                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                                borderColor: 'rgba(78, 115, 223, 1)',
+                                pointRadius: 4,
+                                pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                                pointBorderColor: 'rgba(78, 115, 223, 1)',
+                                pointHoverRadius: 6,
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString('vi-VN') + ' đ';
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let value = context.raw || 0;
+                                            return ' Doanh thu: ' + value.toLocaleString('vi-VN') + ' VNĐ';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Lỗi khi tải biểu đồ:', error);
+                    alert("Không thể tải dữ liệu biểu đồ. Vui lòng kiểm tra Console (F12).");
+                });
         });
     </script>
 }

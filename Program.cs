@@ -1,7 +1,18 @@
+using LaptopShop.Models;
+using LaptopShop.Services;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Đăng ký các dịch vụ MVC vào container
 builder.Services.AddControllersWithViews();
+
+
+// Đăng ký StockService cho module quản lý kho
+builder.Services.AddScoped<IStockService, StockService>();
+// Đăng ký AppDbContext kết nối tới SQL Server
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
