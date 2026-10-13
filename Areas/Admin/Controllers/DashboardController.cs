@@ -1,12 +1,12 @@
-using LaptopShop.Controllers;
 using LaptopShop.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LaptopShop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class DashboardController : AdminBaseController
+    public class DashboardController : Controller
     {
         private readonly AppDbContext _context;
 
@@ -15,65 +15,138 @@ namespace LaptopShop.Areas.Admin.Controllers
             _context = context;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            // 1. Tính tổng doanh thu từ các đơn hàng hoàn thành (An toàn tuyệt đối với giá trị null)
-            var totalRevenue = await _context.Orders
-                .Where(o => o.Status != null && o.Status.ToLower() == "completed")
-                .SumAsync(o => (decimal?)(o.TotalAmount)) ?? 0;
-            ViewBag.TotalRevenue = totalRevenue;
+            var now = DateTime.Now;
+            var startOfMonth = new DateTime(now.Year, now.Month, 1);
 
-            // 2. Đếm số lượng đơn hàng đang chờ xử lý
-            var pendingCount = await _context.Orders
-                .Where(o => o.Status != null && o.Status.ToLower() == "pending")
-                .CountAsync();
-            ViewBag.PendingOrdersCount = pendingCount;
+            // 1. Thống kê 4 thẻ số liệu an toàn
+            var orders = await _context.Orders.ToListAsync();
 
-            // 3. Đếm tổng số sản phẩm laptop đang có trong hệ thống
+            var monthlyRevenue = orders
+                .Where(o => o.Status == "Completed" && o.OrderDate.HasValue && o.OrderDate.Value >= startOfMonth)
+                .Sum(o => o.TotalAmount ?? 0);
+
+            var pendingOrdersCount = orders
+                .Count(o => o.Status == "Pending");
+
+            // Số sản phẩm đang kinh doanh (đếm tổng số sản phẩm có trong bảng Products)
             var activeProductsCount = await _context.Products.CountAsync();
-            ViewBag.ActiveProductsCount = activeProductsCount;
 
-            // 4. Đếm tổng số khách hàng đã mua hàng (dựa trên UserId hoặc khách hàngdistinct)
-            var totalCustomers = await _context.Orders
-                .Where(o => o.UserId != null)
-                .Select(o => o.UserId)
-                .Distinct()
-                .CountAsync();
-            ViewBag.TotalCustomers = totalCustomers;
+            var users = await _context.Users.ToListAsync();
+            var newCustomersCount = users
+                .Count(u => u.Role == "Customer" && u.CreatedAt >= startOfMonth);
+
+            // - Top 5 sản phẩm bán chạy nhất
+            var orderDetails = await _context.OrderDetails
+                .Include(od => od.Product)
+                .Include(od => od.Order)
+                .Where(od => od.Order != null && od.Order.Status == "Completed" && od.Product != null)
+                .ToListAsync();
+
+            var topSellingProducts = orderDetails
+                .GroupBy(od => new { od.ProductId, ProductName = od.Product!.Name })
+                .Select(g => new
+                {
+                    ProductName = g.Key.ProductName,
+                    TotalQuantity = g.Sum(x => x.Quantity ?? 0),
+                    TotalRevenue = g.Sum(x => (x.Quantity ?? 0) * (x.UnitPrice ?? 0))
+                })
+                .OrderByDescending(x => x.TotalQuantity)
+                .Take(5)
+                .ToList();
+
+            ViewBag.MonthlyRevenue = monthlyRevenue;
+            ViewBag.PendingOrdersCount = pendingOrdersCount;
+            ViewBag.TotalRevenue = monthlyRevenue;
+            ViewBag.ActiveProductsCount = activeProductsCount;
+            ViewBag.NewCustomersCount = newCustomersCount;
+            ViewBag.TopSellingProducts = topSellingProducts;
 
             return View();
         }
 
-        // API trả về dữ liệu JSON phục vụ vẽ biểu đồ Chart.js
-        // API trả về dữ liệu JSON phục vụ vẽ biểu đồ Chart.js
+        // =========================================================================
+        // AJAX ENDPOINTS CHO BIỂU ĐỒ CHART.JS
+        // =========================================================================
+
         [HttpGet]
-        public async Task<IActionResult> GetRevenueChartData()
+        public async Task<IActionResult> GetRevenueData(string range = "7d")
         {
-            try
-            {
-                // Lấy toàn bộ đơn hàng hoàn thành về RAM để nhóm ngày tháng an toàn tuyệt đối
-                var orders = await _context.Orders
-                    .Where(o => o.Status != null && o.Status.ToLower() == "completed")
-                    .ToListAsync();
+            var resultLabels = new List<string>();
+            var resultValues = new List<decimal>();
+            var today = DateTime.Today;
+            var orders = await _context.Orders
+                .Where(o => o.Status == "Completed" && o.OrderDate.HasValue)
+                .ToListAsync();
 
-                var data = orders
-                    .Where(o => o.OrderDate != null) // Đảm bảo OrderDate không null
-                    .GroupBy(o => o.OrderDate.Value.Date) // Sử dụng .Value.Date cho kiểu DateTime?
-                    .Select(g => new {
-                        Date = g.Key.ToString("dd/MM/yyyy"),
-                        Revenue = g.Sum(o => o.TotalAmount)
-                    })
-                    .OrderBy(x => DateTime.ParseExact(x.Date, "dd/MM/yyyy", null))
-                    .Take(7)
-                    .ToList();
-
-                return Json(data);
-            }
-            catch (Exception)
+            if (range == "12m")
             {
-                // Trả về mảng rỗng nếu phát sinh sự cố dữ liệu để không làm sập giao diện web
-                return Json(new List<object>());
+                for (int i = 11; i >= 0; i--)
+                {
+                    var targetMonth = today.AddMonths(-i);
+                    var year = targetMonth.Year;
+                    var month = targetMonth.Month;
+
+                    resultLabels.Add($"Tháng {month}/{year}");
+
+                    var monthlySum = orders
+                        .Where(o => o.OrderDate!.Value.Year == year && o.OrderDate.Value.Month == month)
+                        .Sum(o => o.TotalAmount ?? 0);
+
+                    resultValues.Add(monthlySum);
+                }
             }
+            else
+            {
+                for (int i = 6; i >= 0; i--)
+                {
+                    var targetDate = today.AddDays(-i);
+                    resultLabels.Add(targetDate.ToString("dd/MM"));
+
+                    var dailySum = orders
+                        .Where(o => o.OrderDate!.Value.Date == targetDate)
+                        .Sum(o => o.TotalAmount ?? 0);
+
+                    resultValues.Add(dailySum);
+                }
+            }
+
+            return Json(new { labels = resultLabels, data = resultValues });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBrandShareData(string type = "revenue")
+        {
+            var brands = await _context.Brands.ToListAsync();
+            var orderDetails = await _context.OrderDetails
+                .Include(od => od.Product)
+                .Include(od => od.Order)
+                .Where(od => od.Order != null && od.Order.Status == "Completed" && od.Product != null)
+                .ToListAsync();
+
+            var labels = new List<string>();
+            var dataValues = new List<decimal>();
+
+            foreach (var brand in brands)
+            {
+                labels.Add(brand.Name);
+                var brandItems = orderDetails.Where(od => od.Product!.BrandId == brand.Id);
+
+                if (type == "quantity")
+                {
+                    decimal totalQty = brandItems.Sum(od => (decimal)(od.Quantity ?? 0));
+                    dataValues.Add(totalQty);
+                }
+                else
+                {
+                    decimal totalRev = brandItems.Sum(od => (decimal)((od.Quantity ?? 0) * (od.UnitPrice ?? 0)));
+                    dataValues.Add(totalRev);
+                }
+            }
+
+            return Json(new { labels, data = dataValues });
         }
     }
 }

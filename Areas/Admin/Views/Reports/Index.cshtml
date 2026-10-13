@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Báo cáo Doanh thu & Đơn hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Báo cáo & Thống kê</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item active">Báo cáo</li>
+    </ol>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-primary text-white py-3">
+            <h6 class="m-0 font-weight-bold"><i class="fas fa-filter me-1"></i> Bộ lọc Xuất Báo Cáo Doanh Thu & Đơn Hàng</h6>
+        </div>
+        <div class="card-body bg-light">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="fromDate" class="form-label fw-bold">Từ ngày:</label>
+                    <input type="date" id="fromDate" name="fromDate" value="@ViewBag.FromDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label for="toDate" class="form-label fw-bold">Đến ngày:</label>
+                    <input type="date" id="toDate" name="toDate" value="@ViewBag.ToDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label fw-bold">Trạng thái đơn hàng:</label>
+                    <select id="status" name="status" class="form-select">
+                        <option value="All" selected='@(ViewBag.Status == "All")'>Tất cả trạng thái</option>
+                        <option value="Pending" selected='@(ViewBag.Status == "Pending")'>Pending (Chờ xử lý)</option>
+                        <option value="Completed" selected='@(ViewBag.Status == "Completed")'>Completed (Hoàn thành)</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" formaction="@Url.Action("ExportCsv", "Reports", new { area = "Admin" })" class="btn btn-success flex-grow-1 shadow-sm">
+                        <i class="fas fa-file-csv me-1"></i> Xuất CSV
+                    </button>
+                    <button type="submit" formaction="@Url.Action("ExportExcel", "Reports", new { area = "Admin" })" class="btn btn-info text-white flex-grow-1 shadow-sm">
+                        <i class="fas fa-file-excel me-1"></i> Xuất Excel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
