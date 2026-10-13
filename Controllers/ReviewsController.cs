@@ -13,33 +13,71 @@ namespace LaptopShop.Controllers
             _context = context;
         }
 
-        // Lấy danh sách tất cả đánh giá
-        public IActionResult Index()
+        public IActionResult Index(int? rating, string sortOrder)
         {
-            // Dùng Include để lấy luôn thông tin cái Laptop (Product) mà khách đang đánh giá
-            var reviews = _context.Reviews
-                                  .Include(r => r.Product)
-                                  .OrderByDescending(r => r.CreatedAt)
-                                  .ToList();
+            // Truyền giá trị để giữ trạng thái trên View
+            ViewData["CurrentRating"] = rating;
 
-            return View(reviews);
-        }
-        // Action Delete: Nhận ID của đánh giá và tiến hành xóa khỏi CSDL
-        [HttpPost] // Dùng HttpPost để bảo mật, tránh việc xóa nhầm khi gõ nhầm link
-        public IActionResult Delete(int id)
-        {
-            // 1. Tìm cái đánh giá cần xóa trong cơ sở dữ liệu
-            var review = _context.Reviews.FirstOrDefault(r => r.Id == id);
+            // Thiết lập chiều sắp xếp cho từng cột
+            ViewData["IdSortParm"] = string.IsNullOrEmpty(sortOrder) ? "id_desc" : "";
+            ViewData["NameSortParm"] = sortOrder == "name_asc" ? "name_desc" : "name_asc";
+            ViewData["RatingSortParm"] = sortOrder == "rating_asc" ? "rating_desc" : "rating_asc";
+            ViewData["DateSortParm"] = sortOrder == "date_asc" ? "date_desc" : "date_asc";
 
-            if (review != null)
+            var reviewsQuery = _context.Reviews
+                                       .Include(r => r.Product)
+                                       .AsQueryable();
+
+            // 1. Lọc theo số sao (nếu có chọn)
+            if (rating.HasValue && rating.Value >= 1 && rating.Value <= 5)
             {
-                // 2. Xóa nó khỏi Entity Framework
-                _context.Reviews.Remove(review);
-                // 3. Lưu sự thay đổi xuống SQL Server
-                _context.SaveChanges();
+                reviewsQuery = reviewsQuery.Where(r => r.Rating == rating.Value);
             }
 
-            // 4. Xóa xong thì load lại trang danh sách đánh giá
+            // Đưa về List trước để sắp xếp tên theo chữ cái cuối cùng an toàn trên bộ nhớ C#
+            var reviewsList = reviewsQuery.ToList();
+
+            // 2. Sắp xếp đa cột
+            switch (sortOrder)
+            {
+                case "id_desc":
+                    reviewsList = reviewsList.OrderByDescending(r => r.Id).ToList();
+                    break;
+                case "name_asc":
+                    reviewsList = reviewsList.OrderBy(r => !string.IsNullOrEmpty(r.UserName) ? r.UserName.Trim().Substring(r.UserName.Trim().LastIndexOf(' ') + 1) : "").ToList();
+                    break;
+                case "name_desc":
+                    reviewsList = reviewsList.OrderByDescending(r => !string.IsNullOrEmpty(r.UserName) ? r.UserName.Trim().Substring(r.UserName.Trim().LastIndexOf(' ') + 1) : "").ToList();
+                    break;
+                case "rating_asc":
+                    reviewsList = reviewsList.OrderBy(r => r.Rating).ToList();
+                    break;
+                case "rating_desc":
+                    reviewsList = reviewsList.OrderByDescending(r => r.Rating).ToList();
+                    break;
+                case "date_asc":
+                    reviewsList = reviewsList.OrderBy(r => r.CreatedAt).ToList();
+                    break;
+                case "date_desc":
+                    reviewsList = reviewsList.OrderByDescending(r => r.CreatedAt).ToList();
+                    break;
+                default:
+                    reviewsList = reviewsList.OrderByDescending(r => r.Id).ToList(); // Mặc định mới nhất lên đầu
+                    break;
+            }
+
+            return View(reviewsList);
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var review = _context.Reviews.FirstOrDefault(r => r.Id == id);
+            if (review != null)
+            {
+                _context.Reviews.Remove(review);
+                _context.SaveChanges();
+            }
             return RedirectToAction("Index");
         }
     }
