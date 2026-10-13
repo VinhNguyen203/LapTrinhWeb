@@ -84,13 +84,28 @@
                         <td>@item.CustomerName</td>
                         <td>@item.PhoneNumber</td>
                         <td>@item.ShippingAddress</td>
-                        <td>@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td class="text-danger fw-bold">@item.TotalAmount.ToString("N0") VNĐ</td>
+                        <td class="text-center">@(item.OrderDate.HasValue ? item.OrderDate.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
+                        <td class="text-danger fw-bold">@string.Format("{0:N0}", item.TotalAmount ?? 0) VNĐ</td>
                         <td>
-                            @if (item.Status == "Đã giao") { <span class="badge bg-success">Đã giao</span> }
-                            else if (item.Status == "Đang giao") { <span class="badge bg-primary">Đang giao</span> }
-                            else if (item.Status == "Đã hủy") { <span class="badge bg-danger">Đã hủy</span> }
-                            else { <span class="badge bg-warning text-dark">Đang xử lý</span> }
+                            @if (item.Status == "Đã giao")
+                            {
+                                <span class="badge bg-success">Đã giao</span>
+                            }
+                            else if (item.Status == "Đang giao")
+                            {
+
+                                <span class="badge bg-primary">Đang giao</span>
+                            }
+                            else if (item.Status == "Đã hủy")
+                            {
+
+                                <span class="badge bg-danger">Đã hủy</span>
+                            }
+                            else
+                            {
+
+                                <span class="badge bg-warning text-dark">Đang xử lý</span>
+                            }
                         </td>
                         <td>
                             <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">Chi tiết</a>

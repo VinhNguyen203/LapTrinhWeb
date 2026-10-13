@@ -45,6 +45,7 @@ namespace LaptopShop.Areas.Admin.Controllers
         }
 
         // API trả về dữ liệu JSON phục vụ vẽ biểu đồ Chart.js
+        // API trả về dữ liệu JSON phục vụ vẽ biểu đồ Chart.js
         [HttpGet]
         public async Task<IActionResult> GetRevenueChartData()
         {
@@ -56,7 +57,8 @@ namespace LaptopShop.Areas.Admin.Controllers
                     .ToListAsync();
 
                 var data = orders
-                    .GroupBy(o => o.OrderDate.Date)
+                    .Where(o => o.OrderDate != null) // Đảm bảo OrderDate không null
+                    .GroupBy(o => o.OrderDate.Value.Date) // Sử dụng .Value.Date cho kiểu DateTime?
                     .Select(g => new {
                         Date = g.Key.ToString("dd/MM/yyyy"),
                         Revenue = g.Sum(o => o.TotalAmount)

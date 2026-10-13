@@ -1,0 +1,117 @@
+﻿@model List<LaptopShop.Models.CartItemViewModel>
+
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<h1>Giỏ hàng của bạn</h1>
+
+@if (TempData["CartError"] is string error)
+{
+    <div class="alert alert-danger">
+        @error
+    </div>
+}
+
+<div id="cart-message"
+     class="alert d-none"
+     role="status"
+     aria-live="polite">
+</div>
+
+<p id="cart-empty" class="@(Model.Count == 0 ? "" : "d-none")">
+    Giỏ hàng đang trống.
+</p>
+
+<table id="cart-table"
+       class="table table-bordered table-striped @(Model.Count == 0 ? "d-none" : "")">
+    <thead>
+        <tr>
+            <th>Mã sản phẩm</th>
+            <th>Số lượng</th>
+            <th>Tên sản phẩm</th>
+            <th>Đơn giá</th>
+            <th>Thành tiền</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr data-product-id="@item.ProductId">
+                <td>@item.ProductId</td>
+
+                <td class="cart-quantity">
+                    @item.Quantity
+                </td>
+
+                <td>@item.ProductName</td>
+                <td>@item.UnitPrice.ToString("N0") đ</td>
+
+                <td class="cart-line-total">
+                    @item.TotalPrice.ToString("N0") đ
+                </td>
+
+                <td>
+                    <div class="d-flex gap-2">
+                        <form asp-controller="Cart"
+                              asp-action="Decrease"
+                              method="post"
+                              class="js-cart-change">
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@item.ProductId" />
+
+                            <button type="submit"
+                                    class="btn btn-secondary">
+                                Giảm 1
+                            </button>
+                        </form>
+
+                        <form asp-controller="Cart"
+                              asp-action="Remove"
+                              method="post"
+                              class="js-cart-change">
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@item.ProductId" />
+
+                            <button type="submit"
+                                    class="btn btn-danger">
+                                Xóa
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div id="cart-summary"
+     class="text-end @(Model.Count == 0 ? "d-none" : "")">
+    <h4>
+        Tổng tiền:
+        <span id="cart-total">
+            @Model.Sum(item => item.TotalPrice).ToString("N0") đ
+        </span>
+    </h4>
+    <a asp-controller="Checkout"
+       asp-action="Index"
+       class="btn btn-success">
+        Tiến hành đặt hàng
+    </a>
+</div>
+
+<a asp-controller="DatabaseTest"
+   asp-action="Index"
+   class="btn btn-primary">
+    Tiếp tục mua hàng
+</a>
+
+@section Scripts {
+    <script src="~/js/cart.js" asp-append-version="true"></script>
+}

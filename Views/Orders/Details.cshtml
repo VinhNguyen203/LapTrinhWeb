@@ -21,11 +21,11 @@
                     <p><strong>Họ tên:</strong> @Model.CustomerName</p>
                     <p><strong>Điện thoại:</strong> @Model.PhoneNumber</p>
                     <p><strong>Địa chỉ giao:</strong> @Model.ShippingAddress</p>
-                    <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p><strong>Ngày đặt:</strong> @(Model.OrderDate.HasValue ? Model.OrderDate.Value.ToString("dd/MM/yyyy HH:mm") : "")</p>
                     <p>
                         <strong>Trạng thái:</strong>
                         <span class="badge bg-warning text-dark">@Model.Status</span>
-                    </button>
+                    </p>
                 </div>
             </div>
         </div>
@@ -49,22 +49,24 @@
                         <tbody>
                             @foreach (var detail in Model.OrderDetails)
                             {
-                                var lineTotal = detail.Quantity * detail.UnitPrice;
+                                var qty = detail.Quantity ?? 0;
+                                var price = detail.UnitPrice ?? 0;
+                                var lineTotal = qty * price;
                                 <tr>
                                     <td>
-                                        <!-- Nếu có tên sản phẩm thì in ra, không có thì in 'Sản phẩm đã xóa' -->
+                                        <!-- Nếu có tên sản phẩm thì in ra, không có thì in 'Sản phẩm không xác định' -->
                                         @(detail.Product != null ? detail.Product.Name : "Sản phẩm không xác định")
                                     </td>
-                                    <td class="text-center">@detail.Quantity</td>
-                                    <td class="text-end text-danger">@detail.UnitPrice.ToString("N0") đ</td>
-                                    <td class="text-end text-danger fw-bold">@lineTotal.ToString("N0") đ</td>
+                                    <td class="text-center">@qty</td>
+                                    <td class="text-end text-danger">@string.Format("{0:N0}", price) đ</td>
+                                    <td class="text-end text-danger fw-bold">@string.Format("{0:N0}", lineTotal) đ</td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="3" class="text-end fw-bold">Tổng thanh toán:</td>
-                                <td class="text-end text-danger fw-bold fs-5">@Model.TotalAmount.ToString("N0") VNĐ</td>
+                                <td class="text-end text-danger fw-bold fs-5">@string.Format("{0:N0}", Model.TotalAmount) VNĐ</td>
                             </tr>
                         </tfoot>
                     </table>

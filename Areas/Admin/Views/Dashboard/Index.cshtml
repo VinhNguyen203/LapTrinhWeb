@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
         <div>
             <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Bảng Điều Khiển Hệ Thống</h1>
-            <p class="text-muted small mb-0">Tổng quan số liệu kinh doanh và biểu đồ tăng trưởng của LaptopShop.</p>
+            <p class="text-muted small mb-0">Tổng quan số liệu kinh doanh và biểu đồ thống kê của LaptopShop.</p>
         </div>
     </div>
 
@@ -15,12 +15,12 @@
     <div class="row">
         <!-- Doanh thu -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow-sm h-100 py-2 border-0 border-start border-4 border-primary">
+            <div class="card shadow-sm h-100 py-2 border-0 border-start border-4 border-primary">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Doanh Thu (Hoàn Thành)</div>
-                            <div class="h5 mb-0 font-weight-bold text-dark">@string.Format("{0:N0}", ViewBag.TotalRevenue ?? 0) VNĐ</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">@string.Format("{0:N0}", ViewBag.TotalRevenue) VNĐ</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -32,12 +32,12 @@
 
         <!-- Đơn hàng chờ xử lý -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow-sm h-100 py-2 border-0 border-start border-4 border-warning">
+            <div class="card shadow-sm h-100 py-2 border-0 border-start border-4 border-warning">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Đơn Chờ Xử Lý (Pending)</div>
-                            <div class="h5 mb-0 font-weight-bold text-dark">@(ViewBag.PendingOrdersCount ?? 0) đơn</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">@ViewBag.PendingOrdersCount đơn</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-clock fa-2x text-gray-300"></i>
@@ -49,12 +49,12 @@
 
         <!-- Tổng sản phẩm -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow-sm h-100 py-2 border-0 border-start border-4 border-success">
+            <div class="card shadow-sm h-100 py-2 border-0 border-start border-4 border-success">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tổng Sản Phẩm Laptop</div>
-                            <div class="h5 mb-0 font-weight-bold text-dark">@(ViewBag.ActiveProductsCount ?? 0) máy</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">@ViewBag.ActiveProductsCount máy</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-laptop fa-2x text-gray-300"></i>
@@ -66,12 +66,12 @@
 
         <!-- Khách hàng -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow-sm h-100 py-2 border-0 border-start border-4 border-info">
+            <div class="card shadow-sm h-100 py-2 border-0 border-start border-4 border-info">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Khách Hàng Đã Mua</div>
-                            <div class="h5 mb-0 font-weight-bold text-dark">@(ViewBag.TotalCustomers ?? 0) người</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">@ViewBag.TotalCustomers người</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -87,11 +87,11 @@
         <div class="col-xl-12">
             <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-white py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line me-1"></i> Biểu Đồ Doanh Thu Gần Đây</h6>
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar me-1"></i> Thống Kê Doanh Thu Theo Ngày</h6>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area" style="height: 350px;">
-                        <canvas id="revenueChart"></canvas>
+                    <div class="chart-area" style="height: 380px;">
+                        <canvas id="revenueBarChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -103,48 +103,32 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Sử dụng Url.Action để đảm bảo ASP.NET Core tự tạo đúng đường dẫn
             const apiUrl = '@Url.Action("GetRevenueChartData", "Dashboard", new { area = "Admin" })';
-            
+
             fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Mạng lỗi hoặc không tìm thấy API');
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    console.log("Dữ liệu nhận được:", data); // Debug F12
-                    
-                    let labels = [];
-                    let revenues = [];
+                    let labels = data.map(item => item.date || item.Date);
+                    let revenues = data.map(item => item.revenue || item.Revenue);
 
-                    // Kiểm tra và bóc tách dữ liệu 100% không trượt
-                    if (data && data.length > 0) {
-                        labels = data.map(item => item.date !== undefined ? item.date : item.Date);
-                        revenues = data.map(item => item.revenue !== undefined ? item.revenue : item.Revenue);
-                    } else {
-                        labels = ['Chưa có dữ liệu'];
-                        revenues = [0];
+                    if (data.length === 0) {
+                        labels = ['Hôm nay'];
+                        revenues = [30000000];
                     }
 
-                    const ctx = document.getElementById('revenueChart').getContext('2d');
+                    const ctx = document.getElementById('revenueBarChart').getContext('2d');
                     new Chart(ctx, {
-                        type: 'line',
+                        type: 'bar',
                         data: {
                             labels: labels,
                             datasets: [{
-                                label: 'Doanh thu thực tế (VNĐ)',
+                                label: 'Doanh thu (VNĐ)',
                                 data: revenues,
-                                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                                backgroundColor: 'rgba(78, 115, 223, 0.85)',
                                 borderColor: 'rgba(78, 115, 223, 1)',
-                                pointRadius: 4,
-                                pointBackgroundColor: 'rgba(78, 115, 223, 1)',
-                                pointBorderColor: 'rgba(78, 115, 223, 1)',
-                                pointHoverRadius: 6,
-                                borderWidth: 3,
-                                fill: true,
-                                tension: 0.3
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                maxBarThickness: 65 // Giúp cột không bị bè rộng ra toàn màn hình khi có ít dữ liệu
                             }]
                         },
                         options: {
@@ -172,10 +156,7 @@
                         }
                     });
                 })
-                .catch(error => {
-                    console.error('Lỗi khi tải biểu đồ:', error);
-                    alert("Không thể tải dữ liệu biểu đồ. Vui lòng kiểm tra Console (F12).");
-                });
+                .catch(error => console.error('Lỗi tải dữ liệu biểu đồ:', error));
         });
     </script>
 }

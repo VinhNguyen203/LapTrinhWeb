@@ -1,0 +1,22 @@
+﻿@model int
+
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+}
+
+<div class="alert alert-success">
+    <h1>Đặt hàng thành công!</h1>
+
+    <p>
+        Mã đơn hàng của bạn:
+        <strong>@Model</strong>
+    </p>
+
+    <p>Bạn sẽ thanh toán khi nhận hàng.</p>
+</div>
+
+<a asp-controller="DatabaseTest"
+   asp-action="Index"
+   class="btn btn-primary">
+    Tiếp tục mua hàng
+</a>
