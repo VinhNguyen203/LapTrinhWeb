@@ -1,120 +1,200 @@
-﻿@model IEnumerable<LaptopShop.Models.Product>
+@model LaptopShop.Helpers.PaginatedList<LaptopShop.Models.Product>
 
 @{
-    ViewData["Title"] = "Danh Sách Sản Phẩm";
+    ViewData["Title"] = "Danh Sách Laptop & Tìm Kiếm Nâng Cao";
+    var brands = ViewBag.Brands as List<LaptopShop.Models.Brand> ?? new();
+    var categories = ViewBag.Categories as List<LaptopShop.Models.Category> ?? new();
+    var rams = ViewBag.AvailableRams as List<string> ?? new();
+    var pagination = ViewBag.Pagination as LaptopShop.Models.PaginationInfo;
 }
 
 <style>
     body {
-        /* Nền đồng bộ với trang chủ */
-        background: linear-gradient(180deg, #f8fafc 0%, #ede9fe 100%); 
+        background: linear-gradient(180deg, #f8fafc 0%, #ede9fe 100%);
         min-height: 100vh;
     }
-
-    /* Hiệu ứng thẻ Card hiện đại từ Khoa & Huân */
-    .card-modern {
-        border-radius: 20px;
+    .filter-card {
         background: #ffffff;
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
     }
-    
-    .card-modern:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(99, 102, 241, 0.25) !important;
-    }
-
-    /* Font chữ siêu đậm cho giá */
     .fw-extrabold {
         font-weight: 800;
     }
-
-    /* Nút giỏ hàng gradient */
-    .btn-gradient-cart {
-        width: 45px; 
-        height: 45px; 
-        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); 
-        color: white; 
-        border: none; 
-        transition: transform 0.2s;
+    .filter-label {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 0.88rem !important;
+        margin-bottom: 0.35rem;
     }
-    .btn-gradient-cart:hover {
-        transform: scale(1.1);
-        color: white;
+    .filter-select {
+        color: #0f172a !important;
+        font-weight: 600 !important;
+        border: 1.5px solid #cbd5e1 !important;
+        background-color: #f8fafc !important;
+    }
+    .filter-select:focus {
+        border-color: #4f46e5 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important;
     }
 </style>
 
-<div class="container py-5">
+<div class="container py-4">
     
-    <!-- Tiêu đề trang đồng bộ phong cách -->
-    <div class="d-flex justify-content-between align-items-end mb-4 px-2 border-bottom pb-3">
+    <!-- Tiêu đề trang tương phản cao -->
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2 border-bottom pb-3" style="border-color: #cbd5e1 !important;">
         <div>
-            <span class="text-uppercase fw-bold text-primary small" style="letter-spacing: 0.1em;">Kho Hàng 2026</span>
-            <h3 class="fw-bold mb-0 text-dark display-6">Tất Cả Sản Phẩm <i class="fa-solid fa-layer-group text-warning ms-1"></i></h3>
+            <span class="text-uppercase fw-extrabold small d-block mb-1" style="color: #4f46e5; letter-spacing: 0.15em;">
+                Bộ sưu tập công nghệ 2026
+            </span>
+            <h2 class="fw-extrabold mb-0" style="color: #0f172a; font-size: 2rem;">
+                Danh Sách Sản Phẩm Laptop <i class="fa-solid fa-layer-group text-warning ms-1"></i>
+            </h2>
         </div>
+        <span class="badge px-3 py-2 rounded-pill fs-6 fw-bold" style="background: #1e293b; color: #ffffff;">
+            Tìm thấy @Model.TotalCount sản phẩm
+        </span>
     </div>
 
-    <!-- Lưới sản phẩm rực rỡ -->
+    <!-- HỆ THỐNG BỘ LỌC & TÌM KIẾM NÂNG CAO (CHỮ TƯƠNG PHẢN CAO, SIÊU DỄ NHÌN) -->
+    <div class="filter-card p-4 mb-4">
+        <form asp-action="Index" method="get" id="filterForm">
+            <!-- Hàng 1: Ô tìm kiếm từ khóa chính -->
+            <div class="row g-3 mb-3">
+                <div class="col-lg-8">
+                    <div class="input-group input-group-lg shadow-sm">
+                        <span class="input-group-text bg-white border-end-0 ps-3" style="border: 1.5px solid #cbd5e1; border-right: none;">
+                            <i class="fa-solid fa-magnifying-glass text-primary fs-5"></i>
+                        </span>
+                        <input type="text" name="searchTerm" class="form-control border-start-0 ps-2 fs-6 fw-semibold" 
+                               style="border: 1.5px solid #cbd5e1; border-left: none; color: #0f172a;"
+                               placeholder="Tìm theo tên máy, CPU, GPU, RAM (ví dụ: ASUS, RTX 4060, i7, 16GB)..." 
+                               value="@ViewBag.CurrentSearch" />
+                    </div>
+                </div>
+                <div class="col-lg-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg flex-grow-1 shadow-sm fw-extrabold" style="background: #4338ca; border: none;">
+                        <i class="fa-solid fa-filter me-1"></i> Tìm Kiếm & Lọc
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-dark btn-lg px-3 shadow-sm fw-bold" style="border: 1.5px solid #94a3b8; color: #0f172a;" title="Đặt lại bộ lọc">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hàng 2: Các tiêu chí lọc chi tiết -->
+            <div class="row g-3">
+                <!-- Lọc theo Hãng / Thương hiệu -->
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label filter-label">
+                        <i class="fa-solid fa-tags text-primary me-1"></i>Hãng sản xuất
+                    </label>
+                    <select name="brandId" class="form-select filter-select" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">-- Tất cả các Hãng --</option>
+                        @foreach (var b in brands)
+                        {
+                            <option value="@b.Id" selected="@(ViewBag.CurrentBrandId == b.Id ? "selected" : null)">@b.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Lọc theo Danh mục sản phẩm -->
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label filter-label">
+                        <i class="fa-solid fa-list text-primary me-1"></i>Danh mục sản phẩm
+                    </label>
+                    <select name="categoryId" class="form-select filter-select" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">-- Tất cả Danh mục --</option>
+                        @foreach (var c in categories)
+                        {
+                            <option value="@c.Id" selected="@(ViewBag.CurrentCategoryId == c.Id ? "selected" : null)">@c.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Lọc theo Dung lượng RAM -->
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label filter-label">
+                        <i class="fa-solid fa-memory text-primary me-1"></i>Bộ nhớ RAM
+                    </label>
+                    <select name="ram" class="form-select filter-select" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">-- Tất cả RAM --</option>
+                        @foreach (var r in rams)
+                        {
+                            <option value="@r" selected="@(ViewBag.CurrentRam == r ? "selected" : null)">@r</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Lọc theo Khoảng giá -->
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label filter-label">
+                        <i class="fa-solid fa-money-bill-wave text-primary me-1"></i>Mức giá
+                    </label>
+                    <select name="priceRange" class="form-select filter-select" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">-- Chọn mức giá --</option>
+                        <option value="under-15" selected="@(ViewBag.CurrentPriceRange == "under-15" ? "selected" : null)">Dưới 15 triệu</option>
+                        <option value="15-25" selected="@(ViewBag.CurrentPriceRange == "15-25" ? "selected" : null)">15 - 25 triệu</option>
+                        <option value="25-35" selected="@(ViewBag.CurrentPriceRange == "25-35" ? "selected" : null)">25 - 35 triệu</option>
+                        <option value="over-35" selected="@(ViewBag.CurrentPriceRange == "over-35" ? "selected" : null)">Trên 35 triệu</option>
+                    </select>
+                </div>
+
+                <!-- Sắp xếp kết quả -->
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label filter-label">
+                        <i class="fa-solid fa-arrow-down-short-wide text-primary me-1"></i>Sắp xếp theo
+                    </label>
+                    <select name="sortBy" class="form-select filter-select" onchange="document.getElementById('filterForm').submit()">
+                        <option value="" selected="@(string.IsNullOrEmpty(ViewBag.CurrentSortBy) ? "selected" : null)">Mới nhất</option>
+                        <option value="price_asc" selected="@(ViewBag.CurrentSortBy == "price_asc" ? "selected" : null)">Giá: Thấp đến Cao</option>
+                        <option value="price_desc" selected="@(ViewBag.CurrentSortBy == "price_desc" ? "selected" : null)">Giá: Cao đến Thấp</option>
+                        <option value="name_asc" selected="@(ViewBag.CurrentSortBy == "name_asc" ? "selected" : null)">Tên: A -> Z</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Thông báo kết quả giỏ hàng (nếu có thêm bằng ajax) -->
+    <div id="cart-message" class="d-none"></div>
+
+    <!-- LƯỚI SẢN PHẨM HIỂN THỊ DÙNG PARTIAL _ProductCard -->
     <div class="row g-4 mb-5">
         @if (Model != null && Model.Any())
         {
             foreach (var item in Model)
             {
-                var originalPrice = item.Price * 1.15m; // Giá gốc tượng trưng
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-modern h-100 p-3 border-0 shadow-lg position-relative overflow-hidden">
-                        
-                        <!-- Nhãn giảm giá rực rỡ -->
-                        <div class="position-absolute top-0 start-0 m-3 z-index-1">
-                            <span class="badge text-white px-3 py-2 rounded-pill fw-bold shadow-sm" style="background: linear-gradient(135deg, #ff416c, #ff4b2b);">
-                                -15% GIẢM SỐC
-                            </span>
-                        </div>
-
-                        <!-- KHUNG HÌNH ẢNH SẢN PHẨM BÊ NGUYÊN TỪ TRANG CHỦ -->
-                        <div class="text-center p-4 rounded-4 mb-3 position-relative" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);">
-                            <div class="py-4">
-                                <i class="fa-solid fa-laptop text-primary" style="font-size: 70px; filter: drop-shadow(0 8px 12px rgba(99, 102, 241, 0.25));"></i>
-                            </div>
-                            <span class="badge bg-dark text-white position-absolute bottom-0 end-0 m-2 px-2 py-1 rounded-3 small shadow-sm">Chính hãng</span>
-                        </div>
-
-                        <!-- THÔNG TIN SẢN PHẨM TỪ CƠ SỞ DỮ LIỆU -->
-                        <div class="card-body p-2 d-flex flex-column">
-                            <div class="mb-2">
-                                <span class="text-muted small fw-semibold"><i class="fa-solid fa-tag text-purple me-1" style="color: #a855f7;"></i> Gaming & Đồ Họa</span>
-                            </div>
-                            
-                            <!-- Tên máy lấy từ Database -->
-                            <h5 class="card-title fw-bold text-dark mb-2" style="font-size: 1.15rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 44px;">
-                                @item.Name
-                            </h5>
-                            
-                            <!-- Cấu hình lấy từ Database -->
-                            <p class="text-secondary small mb-3 bg-light p-2 rounded-3 text-truncate">
-                                <i class="fa-solid fa-microchip me-1 text-primary"></i> RAM @item.RAM | @item.CPU
-                            </p>
-                            
-                            <!-- Giá tiền và nút giỏ hàng -->
-                            <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="text-danger fw-extrabold fs-5" style="letter-spacing: -0.5px;">@item.Price.ToString("N0")đ</span><br/>
-                                    <del class="text-muted small text-decoration-line-through">@originalPrice.ToString("N0")đ</del>
-                                </div>
-                                <button class="btn btn-gradient-cart rounded-circle shadow-sm d-flex align-items-center justify-content-center" title="Thêm vào giỏ hàng">
-                                    <i class="fa-solid fa-cart-plus fs-5"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <partial name="_ProductCard" model="item" />
                 </div>
             }
         }
         else
         {
             <div class="col-12 text-center py-5">
-                <p class="text-muted fs-5">Chưa có sản phẩm nào trong database.</p>
+                <div class="bg-white rounded-4 p-5 shadow-sm border" style="border-color: #cbd5e1;">
+                    <i class="fa-solid fa-box-open fs-1 text-primary mb-3 d-block"></i>
+                    <h3 class="fw-extrabold mb-2" style="color: #0f172a;">Không tìm thấy sản phẩm nào phù hợp!</h3>
+                    <p class="text-secondary mb-4 fs-6">Vui lòng thử lại với từ khóa khác hoặc bấm nút bên dưới để bỏ các tiêu chí lọc giá / RAM / thương hiệu.</p>
+                    <a asp-action="Index" class="btn btn-primary rounded-pill px-4 py-2 fw-extrabold" style="background: #4338ca; border: none;">
+                        <i class="fa-solid fa-rotate-left me-1"></i> Xóa tất cả bộ lọc & Hiển thị lại
+                    </a>
+                </div>
             </div>
         }
     </div>
+
+    <!-- PHÂN TRANG DÙNG PARTIAL _Pagination -->
+    @if (pagination != null)
+    {
+        <partial name="_Pagination" model="pagination" />
+    }
+
 </div>
+
+@section Scripts {
+    <script src="~/js/cart.js" asp-append-version="true"></script>
+}
