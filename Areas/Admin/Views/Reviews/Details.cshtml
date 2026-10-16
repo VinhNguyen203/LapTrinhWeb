@@ -7,7 +7,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1"><i class="fa-solid fa-star me-2 text-warning"></i>Chi tiết Đánh giá #{Model.Id}</h3>
-        <span class="text-muted small">Thời gian gửi: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</span>
+        <span class="text-muted small">Thời gian gửi: @(Model.CreatedAt.HasValue ? Model.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") : "-")</span>
     </div>
     <a asp-action="Index" class="btn btn-outline-secondary">
         <i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách
@@ -31,7 +31,7 @@
                 <div class="text-warning fs-5">
                     @for (int i = 1; i <= 5; i++)
                     {
-                        if (i <= Model.Rating)
+                        if (i <= (Model.Rating ?? 5))
                         {
                             <i class="fa-solid fa-star"></i>
                         }
@@ -40,7 +40,7 @@
                             <i class="fa-regular fa-star text-muted opacity-50"></i>
                         }
                     }
-                    <span class="fw-bold text-dark fs-6 ms-1">(@Model.Rating/5)</span>
+                    <span class="fw-bold text-dark fs-6 ms-1">(@(Model.Rating ?? 5)/5)</span>
                 </div>
             </div>
             <div class="card-body p-4">

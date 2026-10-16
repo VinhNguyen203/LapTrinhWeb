@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LaptopShop.Models.Review>
+@model IEnumerable<LaptopShop.Models.Review>
 
 @{
     ViewData["Title"] = "Quản lý Đánh giá";
@@ -63,7 +63,7 @@
                         <td class="text-warning fs-5">
                             @for (int i = 1; i <= 5; i++)
                             {
-                                if (i <= item.Rating)
+                                if (i <= (item.Rating ?? 5))
                                 {
                                     <span>★</span>
                                 }
@@ -75,7 +75,7 @@
                             }
                         </td>
                         <td>@item.Comment</td>
-                        <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")</td>
                         <td>
                             <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này không?');" style="display:inline;">
                                 <button type="submit" class="btn btn-sm btn-danger">Xóa</button>

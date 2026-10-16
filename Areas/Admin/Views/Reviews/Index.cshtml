@@ -41,7 +41,7 @@
             </div>
             <div class="col-md-3">
                 <select name="ratingFilter" class="form-select" onchange="this.form.submit()">
-                    <option value="" selected="@(!ViewBag.RatingFilter.HasValue ? "selected" : null)">-- Tất cả số sao --</option>
+                    <option value="" selected="@(ViewBag.RatingFilter == null ? "selected" : null)">-- Tất cả số sao --</option>
                     <option value="5" selected="@(ViewBag.RatingFilter == 5 ? "selected" : null)">5 sao ⭐⭐⭐⭐⭐</option>
                     <option value="4" selected="@(ViewBag.RatingFilter == 4 ? "selected" : null)">4 sao ⭐⭐⭐⭐</option>
                     <option value="3" selected="@(ViewBag.RatingFilter == 3 ? "selected" : null)">3 sao ⭐⭐⭐</option>
@@ -125,7 +125,7 @@
                                     <div class="text-warning">
                                         @for (int i = 1; i <= 5; i++)
                                         {
-                                            if (i <= review.Rating)
+                                            if (i <= (review.Rating ?? 5))
                                             {
                                                 <i class="fa-solid fa-star"></i>
                                             }
@@ -134,16 +134,16 @@
                                                 <i class="fa-regular fa-star text-muted opacity-50"></i>
                                             }
                                         }
-                                        <span class="fw-bold ms-1 text-dark small">(@review.Rating/5)</span>
+                                        <span class="fw-bold ms-1 text-dark small">(@(review.Rating ?? 5)/5)</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="text-secondary small d-block text-truncate" style="max-width: 280px;" title="@review.Comment">
-                                        @review.Comment
+                                        @(review.Comment ?? "-")
                                     </span>
                                 </td>
                                 <td class="text-muted small">
-                                    @review.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    @(review.CreatedAt.HasValue ? review.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">
