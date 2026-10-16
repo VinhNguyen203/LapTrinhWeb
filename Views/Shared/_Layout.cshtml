@@ -1,4 +1,3 @@
-﻿<!-- Phần của Tú: _Layout (khách) -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -7,92 +6,607 @@
 
     <title>@ViewData["Title"] - LaptopShop</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet" />
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- CSS tùy chỉnh -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        /* ======================== THANH TOPBAR (NAVBAR) ======================== */
+        #mainNavbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+            padding: 0.75rem 0;
+        }
+        #mainNavbar .navbar-brand {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #ffffff !important;
+            letter-spacing: 0.5px;
+        }
+        #mainNavbar .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 0.9rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        #mainNavbar .nav-link:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        #mainNavbar .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.75);
+            color: #ffffff !important;
+        }
+        #mainNavbar .btn-outline-light:hover {
+            background: #ffffff;
+            color: #667eea !important;
+        }
 
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-    <link rel="stylesheet"
-          href="~/css/site.css"
-          asp-append-version="true" />
+        /* ======================== CỬA SỔ NỔI (MODAL) ======================== */
+        .modal-auth-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-top-left-radius: calc(0.5rem - 1px);
+            border-top-right-radius: calc(0.5rem - 1px);
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+        }
+        .btn-modal-auth {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .btn-modal-auth:hover {
+            opacity: 0.92;
+            color: white;
+            transform: translateY(-1px);
+        }
+        .modal-pwd-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 5px;
+            transition: all 0.3s;
+        }
+    </style>
 </head>
 <body>
+
+    <!-- ======================== TOAST THÔNG BÁO ======================== -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+        <div id="authNotificationToast" class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center fw-semibold py-3 px-3" id="authNotificationBody">
+                    <i class="fa-solid fa-triangle-exclamation fs-5 me-2 text-warning" id="authToastIcon"></i>
+                    <span id="authToastMessage">Vui lòng đăng nhập tài khoản!</span>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== HEADER & NAVBAR ======================== -->
     <header>
-        <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-dark sticky-top" id="mainNavbar">
             <div class="container">
-                <a class="navbar-brand fw-bold"
-                   asp-area=""
-                   asp-controller="Home"
-                   asp-action="Index"
-                   style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    <i class="fa-solid fa-laptop-code"></i>
-                    LAPTOPSHOP
+                <!-- Logo / Thương hiệu -->
+                <a class="navbar-brand fw-bold d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                    <i class="fa-solid fa-laptop me-2 fs-4"></i>
+                    <span>LaptopShop</span>
                 </a>
 
-                <button class="navbar-toggler"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#navbarNav"
-                        aria-controls="navbarNav"
-                        aria-expanded="false"
-                        aria-label="Mở menu">
+                <!-- Nút toggle mobile -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    @{
+                        var userName = Context.Session.GetString("UserName");
+                        var isLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString("UserId"));
+                        var userRole = Context.Session.GetString("UserRole");
+                    }
+
+                    <!-- Menu chính bên trái -->
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <!-- Phần của Khoa: Link tới trang Sản phẩm -->
-                            <a class="nav-link text-dark"
-                               asp-area=""
-                               asp-controller="Products"
-                               asp-action="Index">
-                                Sản Phẩm
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="fa-solid fa-house me-1"></i>Trang chủ
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Products" asp-action="Index">
+                                <i class="fa-solid fa-layer-group me-1"></i>Sản phẩm
+                            </a>
+                        </li>
+
+                        <!-- Nút ĐƠN HÀNG -->
+                        <li class="nav-item">
+                            @if (isLoggedIn)
+                            {
+                                <a class="nav-link" asp-controller="Orders" asp-action="Index">
+                                    <i class="fa-solid fa-cart-shopping me-1"></i>Đơn hàng
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="nav-link" href="javascript:void(0)" onclick="requireLogin('Vui lòng đăng nhập để xem đơn hàng!')">
+                                    <i class="fa-solid fa-cart-shopping me-1"></i>Đơn hàng
+                                </a>
+                            }
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Reviews" asp-action="Index">
+                                <i class="fa-solid fa-star me-1"></i>Đánh giá
+                            </a>
+                        </li>
+
+                        @if (userRole == "Admin")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold" asp-area="Admin"
+                                   asp-controller="Dashboard" asp-action="Index">
+                                    <i class="fa-solid fa-gear me-1"></i>Khu vực Quản trị
+                                </a>
+                            </li>
+                        }
                     </ul>
 
-                    <div class="d-flex align-items-center">
-                        <!-- Phần của Vinh: Biểu tượng và số lượng giỏ hàng -->
-                        <a asp-area=""
-                           asp-controller="Cart"
-                           asp-action="Index"
-                           class="btn btn-light position-relative me-3 rounded-circle shadow-sm"
-                           aria-label="Xem giỏ hàng">
-                            <i class="fa-solid fa-cart-shopping"></i>
+                    <!-- Menu người dùng bên phải (Tài khoản & Giỏ hàng của Vinh) -->
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <!-- Giỏ hàng -->
+                        <li class="nav-item me-3">
+                            <a asp-controller="Cart" asp-action="Index"
+                               class="btn btn-light position-relative rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                               style="width: 40px; height: 40px;"
+                               aria-label="Xem giỏ hàng">
+                                <i class="fa-solid fa-cart-shopping text-dark"></i>
+                                @await Component.InvokeAsync("CartBadge")
+                            </a>
+                        </li>
 
-                            @await Component.InvokeAsync("CartBadge")
-                        </a>
-
-                        <!-- Phần của Tú: Tài khoản / Đăng nhập -->
-                        <a asp-area=""
-                           asp-controller="Account"
-                           asp-action="Login"
-                           class="btn btn-gradient rounded-pill px-4">
-                            Đăng nhập
-                        </a>
-                    </div>
+                        @if (isLoggedIn)
+                        {
+                            <!-- Dropdown khi đã đăng nhập -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#"
+                                   id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="me-2 d-flex align-items-center justify-content-center text-white"
+                                         style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.3); font-size:0.85rem; font-weight:600;">
+                                        @(userName?.Substring(0, 1).ToUpper())
+                                    </div>
+                                    <span>@userName</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                            <i class="fa-solid fa-user me-2 text-primary"></i>Hồ sơ cá nhân
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">
+                                            <i class="fa-solid fa-key me-2 text-warning"></i>Đổi mật khẩu
+                                        </a>
+                                    </li>
+                                    @if (userRole == "Admin")
+                                    {
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li>
+                                            <a class="dropdown-item text-warning fw-semibold" asp-area="Admin"
+                                               asp-controller="Dashboard" asp-action="Index">
+                                                <i class="fa-solid fa-chart-pie me-2"></i>Trang quản trị (Admin)
+                                            </a>
+                                        </li>
+                                    }
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Nút ĐĂNG NHẬP / ĐĂNG KÝ -->
+                            <li class="nav-item me-2">
+                                <button type="button" class="btn btn-outline-light btn-sm px-3"
+                                        data-bs-toggle="modal" data-bs-target="#loginModal">
+                                    <i class="fa-solid fa-arrow-right-to-bracket me-1"></i>Đăng nhập
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button type="button" class="btn btn-light btn-sm px-3 text-dark fw-semibold"
+                                        data-bs-toggle="modal" data-bs-target="#registerModal">
+                                    <i class="fa-solid fa-user-plus me-1 text-primary"></i>Đăng ký
+                                </button>
+                            </li>
+                        }
+                    </ul>
                 </div>
             </div>
         </nav>
     </header>
 
-    <div class="container mt-4 mb-5 pb-5">
-        <main role="main">
-            @RenderBody()
-        </main>
-    </div>
+    @if (!isLoggedIn)
+    {
+        <!-- ======================== CỬA SỔ NỔI (MODAL) ĐĂNG NHẬP ======================== -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+                    <div class="modal-auth-header d-flex justify-content-between align-items-center position-relative">
+                        <div class="text-center w-100">
+                            <i class="fa-solid fa-laptop fs-2 d-block mb-1"></i>
+                            <h5 class="modal-title fw-bold" id="loginModalLabel">LaptopShop</h5>
+                            <small class="opacity-75">Đăng nhập vào tài khoản của bạn</small>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                                data-bs-dismiss="modal" aria-label="Thoát"></button>
+                    </div>
 
-    <footer class="border-top footer text-muted bg-white mt-auto py-4">
-        <div class="container text-center">
-            &copy; 2026 - LaptopShop - Thiết kế bởi Huân &amp; Team.
+                    <div class="modal-body p-4">
+                        <div id="loginAlertNotice" class="alert alert-warning py-2 small d-none mb-3 shadow-sm" role="alert">
+                            <i class="fa-solid fa-circle-exclamation me-1 text-warning"></i>
+                            <span id="loginAlertText">Vui lòng đăng nhập để tiếp tục.</span>
+                        </div>
+
+                        <div id="modalLoginErrorAlert" class="alert alert-danger py-2 small d-none mb-3 shadow-sm" role="alert">
+                            <i class="fa-solid fa-circle-exclamation me-1 text-danger"></i>
+                            <span id="modalLoginErrorText">Email hoặc mật khẩu không chính xác.</span>
+                        </div>
+
+                        <form asp-controller="Account" asp-action="Login" method="post" id="modalLoginForm">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-secondary">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-at text-muted"></i></span>
+                                    <input type="email" name="Email" class="form-control" placeholder="Nhập địa chỉ email" required />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-secondary">Mật khẩu</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-key text-muted"></i></span>
+                                    <input type="password" name="Password" id="modalLoginPassword" class="form-control"
+                                           placeholder="Nhập mật khẩu" required />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleModalPassword('modalLoginPassword', 'modalLoginEye')">
+                                        <i class="fa-solid fa-eye" id="modalLoginEye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" name="RememberMe" value="true" class="form-check-input" id="modalRememberMe" />
+                                <label class="form-check-label small text-secondary" for="modalRememberMe">Ghi nhớ đăng nhập</label>
+                            </div>
+                            <div class="d-flex gap-2 justify-content-end mt-4">
+                                <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">
+                                    <i class="fa-solid fa-xmark me-1"></i>Thoát
+                                </button>
+                                <button type="submit" class="btn btn-modal-auth shadow-sm">
+                                    <i class="fa-solid fa-arrow-right-to-bracket me-1"></i>Đăng nhập
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr class="my-3" />
+                        <div class="text-center small">
+                            <span class="text-muted">Chưa có tài khoản?</span>
+                            <a href="javascript:void(0)" class="fw-semibold text-decoration-none ms-1" style="color: #667eea;"
+                               data-bs-target="#registerModal" data-bs-toggle="modal" data-bs-dismiss="modal">
+                                Đăng ký ngay
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== CỬA SỔ NỔI (MODAL) ĐĂNG KÝ ======================== -->
+        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+                    <div class="modal-auth-header d-flex justify-content-between align-items-center position-relative">
+                        <div class="text-center w-100">
+                            <i class="fa-solid fa-user-plus fs-2 d-block mb-1"></i>
+                            <h5 class="modal-title fw-bold" id="registerModalLabel">Tạo tài khoản LaptopShop</h5>
+                            <small class="opacity-75">Tham gia thành viên để nhận nhiều ưu đãi</small>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                                data-bs-dismiss="modal" aria-label="Thoát"></button>
+                    </div>
+
+                    <div class="modal-body p-4">
+                        <div id="modalRegisterErrorAlert" class="alert alert-danger py-2 small d-none mb-3 shadow-sm" role="alert">
+                            <i class="fa-solid fa-circle-exclamation me-1 text-danger"></i>
+                            <span id="modalRegisterErrorText"></span>
+                        </div>
+
+                        <form asp-controller="Account" asp-action="Register" method="post" id="modalRegisterForm">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-secondary">Họ và tên <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-user text-muted"></i></span>
+                                    <input type="text" name="FullName" class="form-control" placeholder="Nguyễn Văn A" required />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-secondary">Địa chỉ Email <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-at text-muted"></i></span>
+                                    <input type="email" name="Email" class="form-control" placeholder="email@example.com" required />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-secondary">Mật khẩu <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-key text-muted"></i></span>
+                                    <input type="password" name="Password" id="modalPasswordInput" class="form-control"
+                                           placeholder="Ít nhất 6 ký tự" minlength="6" oninput="checkModalStrength(this.value)" required />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleModalPassword('modalPasswordInput', 'modalEyeIcon1')">
+                                        <i class="fa-solid fa-eye" id="modalEyeIcon1"></i>
+                                    </button>
+                                </div>
+                                <div id="modalStrengthBar" class="modal-pwd-strength bg-secondary" style="width:0%"></div>
+                                <small id="modalStrengthText" class="text-muted" style="font-size:0.75rem;"></small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-secondary">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-shield-halved text-muted"></i></span>
+                                    <input type="password" name="ConfirmPassword" id="modalConfirmInput" class="form-control"
+                                           placeholder="Nhập lại mật khẩu" minlength="6" required />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleModalPassword('modalConfirmInput', 'modalEyeIcon2')">
+                                        <i class="fa-solid fa-eye" id="modalEyeIcon2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 justify-content-end mt-4">
+                                <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">
+                                    <i class="fa-solid fa-xmark me-1"></i>Thoát
+                                </button>
+                                <button type="submit" class="btn btn-modal-auth shadow-sm">
+                                    <i class="fa-solid fa-user-plus me-1"></i>Đăng ký
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr class="my-3" />
+                        <div class="text-center small">
+                            <span class="text-muted">Đã có tài khoản?</span>
+                            <a href="javascript:void(0)" class="fw-semibold text-decoration-none ms-1" style="color: #667eea;"
+                               data-bs-target="#loginModal" data-bs-toggle="modal" data-bs-dismiss="modal">
+                                Đăng nhập ngay
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ======================== NỘI DUNG CHÍNH ======================== -->
+    <main class="py-4">
+        <div class="container">
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- ======================== FOOTER ======================== -->
+    <footer class="footer mt-auto py-4 bg-white border-top">
+        <div class="container">
+            <div class="row gy-3">
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fa-solid fa-laptop fs-4 text-primary me-2"></i>
+                        <h5 class="fw-bold mb-0">LaptopShop</h5>
+                    </div>
+                    <p class="text-muted small">Cửa hàng laptop uy tín hàng đầu Việt Nam. Sản phẩm chính hãng, giá tốt nhất.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-semibold mb-2">Liên kết nhanh</h6>
+                    <ul class="list-unstyled small">
+                        <li><a asp-controller="Home" asp-action="Index" class="text-muted text-decoration-none">Trang chủ</a></li>
+                        <li><a asp-controller="Products" asp-action="Index" class="text-muted text-decoration-none">Sản phẩm</a></li>
+                        <li><a asp-controller="Orders" asp-action="Index" class="text-muted text-decoration-none">Đơn hàng</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-semibold mb-2">Liên hệ</h6>
+                    <ul class="list-unstyled small text-muted">
+                        <li><i class="fa-solid fa-envelope me-2"></i>support@laptopshop.com</li>
+                        <li><i class="fa-solid fa-phone me-2"></i>1800-123-456</li>
+                        <li><i class="fa-solid fa-location-dot me-2"></i>Hà Nội, Việt Nam</li>
+                    </ul>
+                </div>
+            </div>
+            <hr />
+            <div class="text-center text-muted small">
+                &copy; @DateTime.Now.Year - LaptopShop - Thiết kế bởi Huân &amp; Team. Tất cả quyền được bảo lưu.
+            </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        const isUserLoggedIn = @(isLoggedIn ? "true" : "false");
+
+        function showAuthToast(message, type = "warning") {
+            const toastEl = document.getElementById('authNotificationToast');
+            const messageEl = document.getElementById('authToastMessage');
+            const iconEl = document.getElementById('authToastIcon');
+            if (!toastEl || !messageEl) return;
+
+            messageEl.textContent = message;
+            if (type === "success") {
+                toastEl.className = "toast align-items-center border-0 shadow-lg bg-success text-white";
+                iconEl.className = "fa-solid fa-circle-check fs-5 me-2 text-white";
+            } else {
+                toastEl.className = "toast align-items-center border-0 shadow-lg bg-warning text-dark";
+                iconEl.className = "fa-solid fa-triangle-exclamation fs-5 me-2 text-danger";
+            }
+
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
+        }
+
+        function requireLogin(reason) {
+            showAuthToast(reason, "warning");
+            const noticeEl = document.getElementById('loginAlertNotice');
+            const textEl = document.getElementById('loginAlertText');
+            if (noticeEl && textEl) {
+                textEl.textContent = reason;
+                noticeEl.classList.remove('d-none');
+            }
+            const loginModalEl = document.getElementById('loginModal');
+            if (loginModalEl) {
+                bootstrap.Modal.getOrCreateInstance(loginModalEl).show();
+            }
+        }
+
+        // AJAX Đăng nhập
+        document.getElementById('modalLoginForm')?.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = this;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const errorAlert = document.getElementById('modalLoginErrorAlert');
+            const errorText = document.getElementById('modalLoginErrorText');
+            if (errorAlert) errorAlert.classList.add('d-none');
+
+            try {
+                const formData = new FormData(form);
+                formData.append('isAjax', 'true');
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAuthToast("Đăng nhập thành công!", "success");
+                    setTimeout(() => { window.location.href = data.redirectUrl || '/'; }, 300);
+                } else {
+                    if (errorAlert && errorText) {
+                        errorText.textContent = data.message || "Email hoặc mật khẩu không chính xác.";
+                        errorAlert.classList.remove('d-none');
+                    }
+                }
+            } catch (err) {
+                if (errorAlert && errorText) {
+                    errorText.textContent = "Có lỗi xảy ra khi kết nối tới máy chủ.";
+                    errorAlert.classList.remove('d-none');
+                }
+            }
+        });
+
+        // AJAX Đăng ký
+        document.getElementById('modalRegisterForm')?.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = this;
+            const errorAlert = document.getElementById('modalRegisterErrorAlert');
+            const errorText = document.getElementById('modalRegisterErrorText');
+            const pwd = document.getElementById('modalPasswordInput')?.value;
+            const confirmPwd = document.getElementById('modalConfirmInput')?.value;
+
+            if (pwd !== confirmPwd) {
+                if (errorAlert && errorText) {
+                    errorText.textContent = "Mật khẩu xác nhận không trùng khớp!";
+                    errorAlert.classList.remove('d-none');
+                }
+                return;
+            }
+
+            try {
+                const formData = new FormData(form);
+                formData.append('isAjax', 'true');
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAuthToast("Đăng ký tài khoản thành công!", "success");
+                    setTimeout(() => { window.location.href = data.redirectUrl || '/'; }, 300);
+                } else {
+                    if (errorAlert && errorText) {
+                        errorText.textContent = data.message || "Đăng ký không thành công.";
+                        errorAlert.classList.remove('d-none');
+                    }
+                }
+            } catch (err) {
+                if (errorAlert && errorText) {
+                    errorText.textContent = "Có lỗi kết nối máy chủ.";
+                    errorAlert.classList.remove('d-none');
+                }
+            }
+        });
+
+        function toggleModalPassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input && icon) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.replace('fa-eye-slash', 'fa-eye');
+                }
+            }
+        }
+
+        function checkModalStrength(value) {
+            const bar = document.getElementById('modalStrengthBar');
+            const text = document.getElementById('modalStrengthText');
+            if (!bar || !text) return;
+
+            let strength = 0;
+            if (value.length >= 6) strength++;
+            if (value.length >= 10) strength++;
+            if (/[A-Z]/.test(value)) strength++;
+            if (/[0-9]/.test(value)) strength++;
+            if (/[^A-Za-z0-9]/.test(value)) strength++;
+
+            const levels = [
+                { width: '20%', color: 'bg-danger', label: 'Rất yếu' },
+                { width: '40%', color: 'bg-warning', label: 'Yếu' },
+                { width: '60%', color: 'bg-info', label: 'Trung bình' },
+                { width: '80%', color: 'bg-primary', label: 'Mạnh' },
+                { width: '100%', color: 'bg-success', label: 'Rất mạnh' },
+            ];
+
+            if (value.length === 0) {
+                bar.style.width = '0%';
+                text.textContent = '';
+                return;
+            }
+
+            const level = levels[Math.min(strength - 1, 4)];
+            bar.style.width = level.width;
+            bar.className = `modal-pwd-strength ${level.color}`;
+            text.textContent = level.label;
+        }
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
