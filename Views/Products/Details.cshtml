@@ -1,0 +1,387 @@
+@model LaptopShop.Models.Product
+@{
+    ViewData["Title"] = Model.Name + " - Chi tiết sản phẩm";
+    var relatedProducts = ViewBag.RelatedProducts as List<LaptopShop.Models.Product> ?? new();
+    var reviews = ViewBag.Reviews as List<LaptopShop.Models.Review> ?? new();
+    double averageRating = ViewBag.AverageRating != null ? (double)ViewBag.AverageRating : 5.0;
+    int reviewCount = ViewBag.ReviewCount != null ? (int)ViewBag.ReviewCount : 0;
+    var originalPrice = Model.Price * 1.15m;
+    var isOutOfStock = Model.StockQuantity <= 0;
+}
+
+<style>
+    .product-detail-card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+    }
+    .spec-table th {
+        width: 35%;
+        background-color: #f8fafc;
+        color: #475569;
+        font-weight: 600;
+    }
+    .spec-table td {
+        color: #0f172a;
+        font-weight: 700;
+    }
+    .star-rating i {
+        color: #f59e0b;
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Breadcrumb điều hướng -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb bg-transparent p-0 mb-0">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted"><i class="fa-solid fa-house me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Products" asp-action="Index" class="text-decoration-none text-muted">Sản phẩm</a></li>
+            @if (Model.Category != null)
+            {
+                <li class="breadcrumb-item"><a asp-controller="Products" asp-action="Index" asp-route-categoryId="@Model.CategoryId" class="text-decoration-none text-muted">@Model.Category.Name</a></li>
+            }
+            <li class="breadcrumb-item active text-dark fw-bold text-truncate" style="max-width: 300px;" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <!-- Thông báo kết quả -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Khu vực thông tin sản phẩm chính -->
+    <div class="product-detail-card p-4 p-lg-5 mb-5">
+        <div class="row g-5">
+            <!-- Cột trái: Hình ảnh máy & Huy hiệu -->
+            <div class="col-lg-5 text-center">
+                <div class="p-5 rounded-4 position-relative overflow-hidden mb-3" 
+                     style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 1.5px solid #cbd5e1; min-height: 380px; display: flex; align-items: center; justify-content: center;">
+                    
+                    <div class="position-absolute top-0 start-0 m-3 d-flex flex-column gap-2 z-index-1">
+                        <span class="badge text-white px-3 py-2 rounded-pill fw-bold shadow-sm" style="background: #dc2626; font-size: 0.85rem;">
+                            -15% GIẢM SỐC
+                        </span>
+                        @if (Model.Brand != null)
+                        {
+                            <span class="badge text-white px-3 py-2 rounded-pill fw-bold shadow-sm" style="background: #0f172a; font-size: 0.85rem;">
+                                @Model.Brand.Name
+                            </span>
+                        }
+                    </div>
+
+                    <i class="fa-solid fa-laptop text-primary" style="font-size: 160px; filter: drop-shadow(0 15px 25px rgba(79, 70, 229, 0.35)); transition: transform 0.3s;"></i>
+                    
+                    <span class="badge bg-dark text-white position-absolute bottom-0 end-0 m-3 px-3 py-2 rounded-3 fw-bold shadow-sm">
+                        @(Model.Category?.Name ?? "Chính hãng")
+                    </span>
+                </div>
+
+                <!-- Cam kết mua hàng -->
+                <div class="row g-2 text-start">
+                    <div class="col-6">
+                        <div class="p-2 border rounded-3 bg-light d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-success fs-5"></i>
+                            <small class="fw-bold text-dark">Bảo hành chính hãng 24T</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 border rounded-3 bg-light d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-truck-fast text-primary fs-5"></i>
+                            <small class="fw-bold text-dark">Giao nhanh toàn quốc</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Thông số, Giá bán & Nút đặt mua -->
+            <div class="col-lg-7">
+                <div class="mb-2">
+                    <span class="badge px-3 py-1 rounded-pill fw-bold text-uppercase" style="background: #ede9fe; color: #5b21b6;">
+                        <i class="fa-solid fa-tag me-1"></i>@(Model.Category?.Name ?? "Laptop")
+                    </span>
+                    @if (Model.Brand != null)
+                    {
+                        <span class="badge px-3 py-1 rounded-pill fw-bold text-uppercase ms-1" style="background: #e0f2fe; color: #0369a1;">
+                            Thương hiệu @Model.Brand.Name
+                        </span>
+                    }
+                </div>
+
+                <h1 class="fw-extrabold text-dark mb-3" style="font-size: 2rem; line-height: 1.3;">
+                    @Model.Name
+                </h1>
+
+                <!-- Đánh giá sao -->
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="star-rating">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= Math.Round(averageRating))
+                            {
+                                <i class="fa-solid fa-star"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-regular fa-star text-muted"></i>
+                            }
+                        }
+                    </div>
+                    <span class="fw-bold text-dark">@averageRating.ToString("0.0")</span>
+                    <span class="text-muted">(@reviewCount đánh giá)</span>
+                    <span class="text-muted">|</span>
+                    <span class="text-success fw-bold"><i class="fa-solid fa-check-circle me-1"></i>Cam kết 100% chính hãng</span>
+                </div>
+
+                <!-- Khung giá nổi bật -->
+                <div class="p-4 rounded-4 mb-4" style="background: linear-gradient(135deg, #f8fafc 0%, #ede9fe 100%); border: 1.5px solid #cbd5e1;">
+                    <div class="d-flex align-items-baseline gap-3">
+                        <span class="display-6 fw-extrabold text-danger" style="letter-spacing: -1px;">
+                            @Model.Price.ToString("N0")đ
+                        </span>
+                        <span class="text-decoration-line-through text-muted fs-5 fw-bold">
+                            @originalPrice.ToString("N0")đ
+                        </span>
+                        <span class="badge bg-danger text-white rounded-pill px-2 py-1 small fw-bold">
+                            Tiết kiệm @((originalPrice - Model.Price).ToString("N0"))đ
+                        </span>
+                    </div>
+                    <div class="text-muted small mt-2">
+                        <i class="fa-solid fa-info-circle me-1"></i>Giá đã bao gồm thuế VAT và miễn phí công cài đặt phần mềm trọn đời.
+                    </div>
+                </div>
+
+                <!-- Cấu hình tóm tắt nhanh -->
+                <div class="row g-2 mb-4">
+                    <div class="col-sm-4">
+                        <div class="p-3 border rounded-3 bg-white text-center">
+                            <i class="fa-solid fa-microchip text-primary fs-4 mb-1"></i>
+                            <div class="small text-muted">Vi xử lý CPU</div>
+                            <div class="fw-bold text-dark text-truncate">@(string.IsNullOrEmpty(Model.CPU) ? "Tiêu chuẩn" : Model.CPU)</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="p-3 border rounded-3 bg-white text-center">
+                            <i class="fa-solid fa-memory text-info fs-4 mb-1"></i>
+                            <div class="small text-muted">Bộ nhớ RAM</div>
+                            <div class="fw-bold text-dark">@(string.IsNullOrEmpty(Model.RAM) ? "8GB" : Model.RAM)</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="p-3 border rounded-3 bg-white text-center">
+                            <i class="fa-solid fa-desktop text-success fs-4 mb-1"></i>
+                            <div class="small text-muted">Card đồ họa GPU</div>
+                            <div class="fw-bold text-dark text-truncate">@(string.IsNullOrEmpty(Model.GPU) ? "Tích hợp" : Model.GPU)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tình trạng kho & Đặt mua -->
+                <div class="mb-4">
+                    <div class="mb-3">
+                        <span class="text-muted me-2">Tình trạng:</span>
+                        @if (isOutOfStock)
+                        {
+                            <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill"><i class="fa-solid fa-circle-xmark me-1"></i>Tạm hết hàng</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success fs-6 px-3 py-2 rounded-pill"><i class="fa-solid fa-circle-check me-1"></i>Còn hàng trong kho (@Model.StockQuantity máy)</span>
+                        }
+                    </div>
+
+                    @if (!isOutOfStock)
+                    {
+                        <div class="d-flex flex-wrap gap-3">
+                            <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-2 flex-grow-1">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold px-4 flex-grow-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                        style="background: #4338ca; border: none; min-height: 54px;">
+                                    <i class="fa-solid fa-cart-plus fs-5"></i>
+                                    <span>Thêm Vào Giỏ Hàng</span>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary btn-lg rounded-pill fw-bold w-100 disabled" style="min-height: 54px;">
+                            <i class="fa-solid fa-phone me-2"></i>Liên hệ nhận thông báo khi có hàng
+                        </button>
+                    }
+                </div>
+
+                <!-- Ưu đãi kèm theo -->
+                <div class="p-3 rounded-3 bg-light border">
+                    <div class="fw-bold text-dark mb-2"><i class="fa-solid fa-gift text-danger me-2"></i>Quà tặng & Ưu đãi đặc quyền:</div>
+                    <ul class="mb-0 small text-secondary ps-3">
+                        <li>Tặng Balo Laptop Gaming cao cấp chống nước</li>
+                        <li>Tặng Chuột quang không dây công thái học + Lót chuột speed</li>
+                        <li>Giảm thêm 5% khi thanh toán qua cổng điện tử hoặc nhập mã voucher</li>
+                        <li>Hỗ trợ trả góp 0% lãi suất qua thẻ tín dụng</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông số kỹ thuật chi tiết & Đánh giá khách hàng -->
+    <div class="row g-4 mb-5">
+        <!-- Bảng thông số kỹ thuật -->
+        <div class="col-lg-6">
+            <div class="product-detail-card p-4 h-100">
+                <h4 class="fw-bold text-dark mb-4 border-bottom pb-3">
+                    <i class="fa-solid fa-sliders text-primary me-2"></i>Thông Số Kỹ Thuật Chi Tiết
+                </h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle spec-table mb-0">
+                        <tbody>
+                            <tr>
+                                <th>Tên model máy</th>
+                                <td>@Model.Name</td>
+                            </tr>
+                            <tr>
+                                <th>Hãng sản xuất</th>
+                                <td>@(Model.Brand?.Name ?? "Đang cập nhật")</td>
+                            </tr>
+                            <tr>
+                                <th>Phân loại / Danh mục</th>
+                                <td>@(Model.Category?.Name ?? "Laptop chính hãng")</td>
+                            </tr>
+                            <tr>
+                                <th>Bộ vi xử lý (CPU)</th>
+                                <td>@(string.IsNullOrEmpty(Model.CPU) ? "Đang cập nhật" : Model.CPU)</td>
+                            </tr>
+                            <tr>
+                                <th>Bộ nhớ trong (RAM)</th>
+                                <td>@(string.IsNullOrEmpty(Model.RAM) ? "8GB DDR4/DDR5" : Model.RAM)</td>
+                            </tr>
+                            <tr>
+                                <th>Card đồ họa (GPU)</th>
+                                <td>@(string.IsNullOrEmpty(Model.GPU) ? "Intel/AMD Onboard Graphics" : Model.GPU)</td>
+                            </tr>
+                            <tr>
+                                <th>Tình trạng tồn kho</th>
+                                <td>@(Model.StockQuantity > 0 ? $"{Model.StockQuantity} máy sẵn có" : "Hết hàng")</td>
+                            </tr>
+                            <tr>
+                                <th>Chế độ bảo hành</th>
+                                <td>24 tháng chính hãng toàn quốc</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Đánh giá và nhận xét từ khách hàng -->
+        <div class="col-lg-6">
+            <div class="product-detail-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <h4 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-comments text-primary me-2"></i>Đánh Giá & Nhận Xét
+                    </h4>
+                    <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold">@reviewCount nhận xét</span>
+                </div>
+
+                <!-- Form gửi đánh giá nhanh -->
+                <div class="p-3 rounded-4 mb-4" style="background: #f8fafc; border: 1.5px dashed #cbd5e1;">
+                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-pen-nib me-1 text-primary"></i>Viết nhận xét của bạn</h6>
+                    <form asp-action="AddReview" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@Model.Id" />
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-muted">Đánh giá số sao:</label>
+                                <select name="rating" class="form-select form-select-sm" required>
+                                    <option value="5" selected>⭐⭐⭐⭐⭐ (5 sao - Tuyệt vời)</option>
+                                    <option value="4">⭐⭐⭐⭐ (4 sao - Rất tốt)</option>
+                                    <option value="3">⭐⭐⭐ (3 sao - Bình thường)</option>
+                                    <option value="2">⭐⭐ (2 sao - Tạm được)</option>
+                                    <option value="1">⭐ (1 sao - Kém)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label small fw-bold text-muted">Cảm nhận của bạn:</label>
+                                <input type="text" name="comment" class="form-control form-control-sm" placeholder="Chia sẻ trải nghiệm sử dụng laptop này..." required />
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                                <i class="fa-solid fa-paper-plane me-1"></i>Gửi Đánh Giá
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Danh sách bình luận -->
+                <div class="reviews-list" style="max-height: 320px; overflow-y: auto;">
+                    @if (reviews.Any())
+                    {
+                        foreach (var rev in reviews)
+                        {
+                            <div class="p-3 border rounded-3 mb-2 bg-white shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="fw-bold text-dark">
+                                        <i class="fa-solid fa-user-circle text-secondary me-1"></i>@(rev.UserName ?? "Khách hàng")
+                                    </div>
+                                    <small class="text-muted">@(rev.CreatedAt.HasValue ? rev.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "")</small>
+                                </div>
+                                <div class="star-rating mb-1" style="font-size: 0.85rem;">
+                                    @for (int s = 1; s <= (rev.Rating ?? 5); s++)
+                                    {
+                                        <i class="fa-solid fa-star"></i>
+                                    }
+                                </div>
+                                <div class="text-secondary small">
+                                    @rev.Comment
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="fa-regular fa-comment-dots fs-2 mb-2 d-block text-secondary"></i>
+                            Chưa có nhận xét nào cho sản phẩm này. Hãy là người đầu tiên đánh giá!
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SẢN PHẨM LIÊN QUAN / TƯƠNG TỰ (DÙNG PARTIAL _ProductCard) -->
+    @if (relatedProducts.Any())
+    {
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
+                <div>
+                    <span class="text-uppercase fw-extrabold small text-primary" style="letter-spacing: 0.1em;">Cùng danh mục & thương hiệu</span>
+                    <h3 class="fw-extrabold text-dark mb-0">Sản Phẩm Tương Tự Bạn Có Thể Thích <i class="fa-solid fa-fire text-danger ms-1"></i></h3>
+                </div>
+                <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary rounded-pill px-4 btn-sm fw-bold">
+                    Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            <div class="row g-4">
+                @foreach (var rel in relatedProducts)
+                {
+                    <div class="col-xl-3 col-md-6">
+                        <partial name="_ProductCard" model="rel" />
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/cart.js" asp-append-version="true"></script>
+}

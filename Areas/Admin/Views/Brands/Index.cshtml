@@ -1,0 +1,159 @@
+@model LaptopShop.Helpers.PaginatedList<LaptopShop.Models.Brand>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Hãng sản xuất";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="fa-solid fa-tags me-2 text-primary"></i>Quản lý Hãng sản xuất (Brands)</h3>
+        <span class="text-muted small">Quản lý danh sách các thương hiệu máy tính (ASUS, Dell, Apple, Lenovo, HP, Acer, MSI...)</span>
+    </div>
+    <a asp-action="Create" class="btn btn-primary shadow-sm px-3">
+        <i class="fa-solid fa-plus me-1"></i>Thêm hãng mới
+    </a>
+</div>
+
+<!-- Alert thông báo -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Bộ lọc & Tìm kiếm -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="searchString" class="form-control" 
+                           placeholder="Tìm kiếm theo tên hãng sản xuất..." 
+                           value="@ViewBag.CurrentSearch" />
+                </div>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-3">
+                    <i class="fa-solid fa-filter me-1"></i>Tìm kiếm
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-rotate-right me-1"></i>Đặt lại
+                </a>
+                <span class="ms-auto align-self-center text-muted small">
+                    Tổng cộng: <strong>@Model.TotalCount</strong> hãng
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bảng hiển thị danh sách -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary text-uppercase small fw-bold">
+                    <tr>
+                        <th class="ps-4" style="width: 100px;">Mã Hãng</th>
+                        <th>Tên Thương Hiệu</th>
+                        <th class="text-center" style="width: 200px;">Số Laptop Hiện Có</th>
+                        <th class="text-end pe-4" style="width: 180px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            var count = item.Products?.Count ?? 0;
+                            <tr>
+                                <td class="ps-4 fw-bold text-muted">#@item.Id</td>
+                                <td>
+                                    <span class="fw-bold text-dark fs-6">@item.Name</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (count > 0)
+                                    {
+                                        <span class="badge bg-primary px-3 py-2 rounded-pill">
+                                            <i class="fa-solid fa-laptop me-1"></i>@count sản phẩm
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary px-3 py-2 rounded-pill text-white-50">
+                                            Chưa có sản phẩm
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary" title="Chỉnh sửa">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" title="Xóa hãng">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-tags fs-1 d-block mb-2 text-secondary"></i>
+                                Không tìm thấy hãng sản xuất nào phù hợp!
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Phân trang -->
+    @if (Model != null && Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white border-0 py-3">
+            <nav aria-label="Brands pagination">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-pageNumber="@(Model.PageIndex - 1)" 
+                           asp-route-searchString="@ViewBag.CurrentSearch">
+                            <i class="fa-solid fa-chevron-left"></i> Trước
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                            <a class="page-link" asp-action="Index" 
+                               asp-route-pageNumber="@i" 
+                               asp-route-searchString="@ViewBag.CurrentSearch">@i</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-pageNumber="@(Model.PageIndex + 1)" 
+                           asp-route-searchString="@ViewBag.CurrentSearch">
+                            Sau <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

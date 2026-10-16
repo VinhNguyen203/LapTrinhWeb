@@ -1,0 +1,64 @@
+@model LaptopShop.Models.Brand
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Xóa Hãng sản xuất";
+    var productCount = ViewBag.ProductCount as int? ?? 0;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card shadow-sm border-0 border-top border-danger border-4">
+            <div class="card-body p-4 text-center">
+                <div class="text-danger mb-3">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 60px;"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">Xác Nhận Xóa Hãng Sản Xuất?</h3>
+                <p class="text-muted mb-4">Bạn có chắc chắn muốn xóa thương hiệu này khỏi hệ thống?</p>
+
+                <div class="bg-light rounded p-3 text-start mb-4">
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">Mã thương hiệu:</div>
+                        <div class="col-sm-8 fw-bold">#@Model.Id</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">Tên thương hiệu:</div>
+                        <div class="col-sm-8 fw-bold fs-5 text-primary">@Model.Name</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4 text-muted">Số sản phẩm liên kết:</div>
+                        <div class="col-sm-8">
+                            @if (productCount > 0)
+                            {
+                                <span class="badge bg-danger">@productCount sản phẩm</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">0 sản phẩm (An toàn để xóa)</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @if (productCount > 0)
+                {
+                    <div class="alert alert-warning text-start" role="alert">
+                        <i class="fa-solid fa-ban me-2"></i><strong>Cảnh báo:</strong> Đang có <strong>@productCount</strong> laptop thuộc thương hiệu này. Hệ thống không cho phép xóa hãng đang có sản phẩm để đảm bảo toàn vẹn dữ liệu. Vui lòng chuyển hoặc xóa các sản phẩm đó trước!
+                    </div>
+                }
+
+                <form asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-center gap-2">
+                        <a asp-action="Index" class="btn btn-secondary px-4">
+                            <i class="fa-solid fa-arrow-left me-1"></i>Hủy bỏ
+                        </a>
+                        <button type="submit" class="btn btn-danger px-4" @(productCount > 0 ? "disabled" : "")>
+                            <i class="fa-solid fa-trash me-1"></i>Xác Nhận Xóa
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
