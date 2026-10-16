@@ -1,5 +1,6 @@
 using LaptopShop.Models;
 using LaptopShop.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,7 +36,13 @@ builder.Services.AddHttpContextAccessor();
 // Đăng ký MVC với Controllers và Views
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<CartService>();
-
+// Đăng ký dịch vụ Cookie Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";       // Trang chuyển hướng khi chưa đăng nhập
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Trang báo không có quyền
+    });
 var app = builder.Build();
 
 // ================================================
@@ -68,6 +75,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAuthentication();
 
 // Kích hoạt Session TRƯỚC Authentication/Authorization
 app.UseSession();

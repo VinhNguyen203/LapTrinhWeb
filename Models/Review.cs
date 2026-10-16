@@ -16,5 +16,7 @@ namespace LaptopShop.Models
         public int Rating { get; set; }
         public string Comment { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string? AdminReply { get; set; }     // Nội dung phản hồi của Admin
+        public DateTime? RepliedAt { get; set; }    // Ngày Admin phản hồi
     }
 }

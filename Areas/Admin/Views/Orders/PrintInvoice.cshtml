@@ -1,0 +1,122 @@
+﻿@model dynamic
+@{
+    Layout = null;
+
+    var customerName = Model.GetType().GetProperty("FullName")?.GetValue(Model) 
+                    ?? Model.GetType().GetProperty("CustomerName")?.GetValue(Model) 
+                    ?? Model.GetType().GetProperty("ReceiverName")?.GetValue(Model) 
+                    ?? "Khách hàng";
+
+    var phone = Model.GetType().GetProperty("PhoneNumber")?.GetValue(Model) 
+             ?? Model.GetType().GetProperty("Phone")?.GetValue(Model) 
+             ?? "";
+
+    var address = Model.GetType().GetProperty("ShippingAddress")?.GetValue(Model) 
+               ?? Model.GetType().GetProperty("Address")?.GetValue(Model) 
+               ?? "";
+
+    var orderDate = Model.GetType().GetProperty("CreatedAt")?.GetValue(Model) 
+                 ?? Model.GetType().GetProperty("OrderDate")?.GetValue(Model) 
+                 ?? Model.GetType().GetProperty("CreatedDate")?.GetValue(Model) 
+                 ?? "";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Hóa đơn #@Model.Id - LaptopShop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; }
+        .invoice-box { max-width: 800px; margin: 30px auto; padding: 30px; border: 1px solid #eee; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.15); }
+        @@media print {
+            .no-print { display: none !important; }
+            .invoice-box { border: none; box-shadow: none; margin: 0; width: 100%; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="text-center mt-3 no-print">
+    <button onclick="window.print()" class="btn btn-primary btn-lg">
+        In hóa đơn ngay
+    </button>
+    <button onclick="window.close()" class="btn btn-secondary btn-lg ms-2">Đóng</button>
+</div>
+
+<div class="invoice-box">
+    <div class="row pb-4 border-bottom">
+        <div class="col-6">
+            <h2 class="text-primary fw-bold">LAPTOPSHOP</h2>
+            <p class="mb-0">Đường Cầu Giấy, Hà Nội</p>
+            <p class="mb-0">Hotline: 0123 456 789</p>
+        </div>
+        <div class="col-6 text-end">
+            <h4 class="text-uppercase text-muted">HÓA ĐƠN BÁN HÀNG</h4>
+            <p class="mb-0">Mã đơn hàng: <strong>#@Model.Id</strong></p>
+            <p class="mb-0">Ngày tạo: @orderDate</p>
+        </div>
+    </div>
+
+    <div class="row my-4">
+        <div class="col-12">
+            <h5 class="fw-bold">Thông tin khách hàng:</h5>
+            <p class="mb-1">Họ tên: <strong>@customerName</strong></p>
+            <p class="mb-1">Số điện thoại: @phone</p>
+            <p class="mb-1">Địa chỉ giao hàng: @address</p>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>STT</th>
+                <th>Tên sản phẩm</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-end">Đơn giá</th>
+                <th class="text-end">Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int idx = 1; }
+            @foreach (var item in Model.OrderDetails)
+            {
+                var unitPrice = item.GetType().GetProperty("Price")?.GetValue(item) 
+                             ?? item.GetType().GetProperty("UnitPrice")?.GetValue(item) 
+                             ?? 0;
+
+                decimal p = Convert.ToDecimal(unitPrice ?? 0);
+                decimal total = p * item.Quantity;
+
+                <tr>
+                    <td>@(idx++)</td>
+                    <td>@item.Product?.Name</td>
+                    <td class="text-center">@item.Quantity</td>
+                    <td class="text-end">@p.ToString("N0") đ</td>
+                    <td class="text-end">@total.ToString("N0") đ</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-end fw-bold">Tổng cộng thanh toán:</td>
+                <td class="text-end fw-bold text-danger fs-5">@Model.TotalAmount</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="row mt-5 text-center">
+        <div class="col-6">
+            <p class="fw-bold">Khách hàng</p>
+            <small class="text-muted">(Ký và ghi rõ họ tên)</small>
+        </div>
+        <div class="col-6">
+            <p class="fw-bold">Nhân viên bán hàng</p>
+            <small class="text-muted">(Ký và ghi rõ họ tên)</small>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

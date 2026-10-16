@@ -1,0 +1,143 @@
+﻿@model dynamic
+@using LaptopShop.Models
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.Id;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+
+    var customerName = Model.GetType().GetProperty("FullName")?.GetValue(Model) 
+                    ?? Model.GetType().GetProperty("CustomerName")?.GetValue(Model) 
+                    ?? Model.GetType().GetProperty("ReceiverName")?.GetValue(Model) 
+                    ?? "Khách hàng";
+
+    var phone = Model.GetType().GetProperty("PhoneNumber")?.GetValue(Model) 
+             ?? Model.GetType().GetProperty("Phone")?.GetValue(Model) 
+             ?? "";
+
+    var address = Model.GetType().GetProperty("ShippingAddress")?.GetValue(Model) 
+               ?? Model.GetType().GetProperty("Address")?.GetValue(Model) 
+               ?? "";
+
+    var note = Model.GetType().GetProperty("Note")?.GetValue(Model) 
+            ?? Model.GetType().GetProperty("Notes")?.GetValue(Model) 
+            ?? "Không có";
+
+    var orderDate = Model.GetType().GetProperty("CreatedAt")?.GetValue(Model) 
+                 ?? Model.GetType().GetProperty("OrderDate")?.GetValue(Model) 
+                 ?? Model.GetType().GetProperty("CreatedDate")?.GetValue(Model) 
+                 ?? "";
+
+    string statusVal = Convert.ToString(Model.Status);
+}
+
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-2">&larr; Trở lại danh sách</a>
+            <h2 class="fw-bold">Chi tiết đơn hàng #@Model.Id</h2>
+        </div>
+        <div>
+            <a asp-action="PrintInvoice" asp-route-id="@Model.Id" target="_blank" class="btn btn-primary">
+                <i class="bi bi-printer"></i> In hóa đơn
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <!-- Form cập nhật trạng thái đơn hàng -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white fw-bold">
+                    Cập nhật trạng thái đơn hàng
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateStatus" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Trạng thái:</label>
+                            <select name="status" class="form-select form-select-lg">
+                                <option value="Pending" selected="@(statusVal == "Pending")">Chờ xác nhận</option>
+                                <option value="Confirmed" selected="@(statusVal == "Confirmed")">Đã xác nhận</option>
+                                <option value="Shipping" selected="@(statusVal == "Shipping")">Đang giao hàng</option>
+                                <option value="Delivered" selected="@(statusVal == "Delivered")">Đã giao hàng</option>
+                                <option value="Cancelled" selected="@(statusVal == "Cancelled")">Đã hủy</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
+                            Lưu thay đổi
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Thông tin người nhận -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white fw-bold">
+                    Thông tin người nhận
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Họ tên:</strong> @customerName</p>
+                    <p class="mb-2"><strong>SĐT:</strong> @phone</p>
+                    <p class="mb-2"><strong>Địa chỉ:</strong> @address</p>
+                    <p class="mb-2"><strong>Ghi chú:</strong> @note</p>
+                    <p class="mb-0"><strong>Ngày đặt:</strong> @orderDate</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white fw-bold">
+                    Danh sách sản phẩm
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-center">Đơn giá</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderDetails)
+                            {
+                                var unitPrice = item.GetType().GetProperty("Price")?.GetValue(item) 
+                                             ?? item.GetType().GetProperty("UnitPrice")?.GetValue(item) 
+                                             ?? 0;
+
+                                decimal p = Convert.ToDecimal(unitPrice ?? 0);
+                                decimal total = p * item.Quantity;
+
+                                <tr>
+                                    <td>@item.Product?.Name</td>
+                                    <td class="text-center">@p.ToString("N0") đ</td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end fw-bold">@total.ToString("N0") đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fs-5">
+                                <td colspan="3" class="text-end fw-bold">Tổng tiền:</td>
+                                <td class="text-end fw-bold text-danger">@Model.TotalAmount</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
