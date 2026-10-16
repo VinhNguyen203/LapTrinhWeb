@@ -1,0 +1,223 @@
+@model LaptopShop.Helpers.PaginatedList<LaptopShop.Models.Product>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Sản phẩm";
+    var brands = ViewBag.Brands as List<LaptopShop.Models.Brand> ?? new();
+    var categories = ViewBag.Categories as List<LaptopShop.Models.Category> ?? new();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="fa-solid fa-laptop me-2 text-primary"></i>Quản lý Danh sách Sản phẩm</h3>
+        <span class="text-muted small">Quản lý kho sản phẩm, cấu hình phần cứng và giá niêm yết</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-primary shadow-sm fw-semibold">
+            <i class="fa-solid fa-plus me-1"></i>Thêm Sản phẩm Mới
+        </a>
+    </div>
+</div>
+
+<!-- Alert messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Bộ lọc & Tìm kiếm -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="searchString" class="form-control" 
+                           placeholder="Tìm theo tên máy, CPU, GPU, RAM..." 
+                           value="@ViewBag.CurrentSearch" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select name="brandId" class="form-select">
+                    <option value="">-- Tất cả Hãng --</option>
+                    @foreach (var b in brands)
+                    {
+                        <option value="@b.Id" selected="@(ViewBag.CurrentBrandId == b.Id ? "selected" : null)">@b.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="categoryId" class="form-select">
+                    <option value="">-- Tất cả Danh mục --</option>
+                    @foreach (var c in categories)
+                    {
+                        <option value="@c.Id" selected="@(ViewBag.CurrentCategoryId == c.Id ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="sortBy" class="form-select">
+                    <option value="" selected="@(string.IsNullOrEmpty(ViewBag.CurrentSortBy) ? "selected" : null)">Mới nhất</option>
+                    <option value="price_asc" selected="@(ViewBag.CurrentSortBy == "price_asc" ? "selected" : null)">Giá tăng dần</option>
+                    <option value="price_desc" selected="@(ViewBag.CurrentSortBy == "price_desc" ? "selected" : null)">Giá giảm dần</option>
+                    <option value="name_asc" selected="@(ViewBag.CurrentSortBy == "name_asc" ? "selected" : null)">Tên A-Z</option>
+                    <option value="stock_asc" selected="@(ViewBag.CurrentSortBy == "stock_asc" ? "selected" : null)">Tồn kho ít nhất</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-50">
+                    <i class="fa-solid fa-filter me-1"></i>Lọc
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-50">
+                    <i class="fa-solid fa-rotate-right me-1"></i>Làm mới
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bảng hiển thị sản phẩm -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4" style="width: 70px;">ID</th>
+                        <th>Tên Laptop</th>
+                        <th>Hãng</th>
+                        <th>Danh mục</th>
+                        <th>Thông số (CPU / RAM / GPU)</th>
+                        <th class="text-end">Đơn giá</th>
+                        <th class="text-center">Tồn kho</th>
+                        <th class="text-center pe-4" style="width: 140px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-muted">#@item.Id</td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.Name</div>
+                                    <small class="text-muted d-block">Mã SP: LP-@item.Id.ToString("D4")</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                        @(item.Brand?.Name ?? "Chưa gán")
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                                        @(item.Category?.Name ?? "Chưa gán")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="small text-secondary">
+                                        <i class="fa-solid fa-microchip text-primary me-1"></i><strong>CPU:</strong> @(string.IsNullOrEmpty(item.CPU) ? "N/A" : item.CPU)<br />
+                                        <i class="fa-solid fa-memory text-info me-1"></i><strong>RAM:</strong> @(string.IsNullOrEmpty(item.RAM) ? "N/A" : item.RAM) | 
+                                        <i class="fa-solid fa-desktop text-success me-1"></i><strong>GPU:</strong> @(string.IsNullOrEmpty(item.GPU) ? "N/A" : item.GPU)
+                                    </div>
+                                </td>
+                                <td class="text-end fw-extrabold text-danger fs-6">
+                                    @item.Price.ToString("N0") đ
+                                </td>
+                                <td class="text-center">
+                                    @if (item.StockQuantity <= 0)
+                                    {
+                                        <span class="badge bg-danger">Hết hàng (0)</span>
+                                    }
+                                    else if (item.StockQuantity <= 5)
+                                    {
+                                        <span class="badge bg-warning text-dark">Sắp hết (@item.StockQuantity)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Còn hàng (@item.StockQuantity)</span>
+                                    }
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary" title="Sửa thông tin">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" title="Xóa sản phẩm">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-box-open fs-1 d-block mb-3 text-secondary"></i>
+                                Không tìm thấy sản phẩm nào phù hợp điều kiện lọc.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Phân trang -->
+    @if (Model != null && Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">
+                    Trang <strong>@Model.PageIndex</strong> / <strong>@Model.TotalPages</strong> (Tổng <strong>@Model.TotalCount</strong> sản phẩm)
+                </span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pageNumber="@(Model.PageIndex - 1)"
+                               asp-route-searchString="@ViewBag.CurrentSearch"
+                               asp-route-brandId="@ViewBag.CurrentBrandId"
+                               asp-route-categoryId="@ViewBag.CurrentCategoryId"
+                               asp-route-sortBy="@ViewBag.CurrentSortBy">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        @for (int p = 1; p <= Model.TotalPages; p++)
+                        {
+                            <li class="page-item @(p == Model.PageIndex ? "active" : "")">
+                                <a class="page-link" asp-action="Index"
+                                   asp-route-pageNumber="@p"
+                                   asp-route-searchString="@ViewBag.CurrentSearch"
+                                   asp-route-brandId="@ViewBag.CurrentBrandId"
+                                   asp-route-categoryId="@ViewBag.CurrentCategoryId"
+                                   asp-route-sortBy="@ViewBag.CurrentSortBy">@p</a>
+                            </li>
+                        }
+                        <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pageNumber="@(Model.PageIndex + 1)"
+                               asp-route-searchString="@ViewBag.CurrentSearch"
+                               asp-route-brandId="@ViewBag.CurrentBrandId"
+                               asp-route-categoryId="@ViewBag.CurrentCategoryId"
+                               asp-route-sortBy="@ViewBag.CurrentSortBy">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+</div>

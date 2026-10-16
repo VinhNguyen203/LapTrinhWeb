@@ -1,0 +1,66 @@
+@model LaptopShop.Models.Product
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Xác nhận xóa Sản phẩm";
+    bool hasOrders = ViewBag.HasOrders == true;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-2">
+        <i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách
+    </a>
+    <h3 class="fw-bold text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Xác nhận Xóa Sản phẩm</h3>
+    <span class="text-muted small">Vui lòng kiểm tra kỹ trước khi xóa vĩnh viễn khỏi cơ sở dữ liệu</span>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 border-top border-4 border-danger">
+            <div class="card-body p-4">
+                @if (hasOrders)
+                {
+                    <div class="alert alert-warning d-flex align-items-center" role="alert">
+                        <i class="fa-solid fa-ban fs-3 me-3 text-danger"></i>
+                        <div>
+                            <strong>Cảnh báo ràng buộc toàn vẹn:</strong> Sản phẩm này đã phát sinh giao dịch trong đơn hàng của khách hàng. Không thể xóa cứng để đảm bảo tính chính xác của lịch sử đơn hàng.
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-secondary mb-4">Bạn có chắc chắn muốn xóa sản phẩm sau đây không? Thao tác này không thể hoàn tác.</p>
+                }
+
+                <div class="bg-light p-3 rounded mb-4">
+                    <h5 class="fw-bold text-dark mb-3">@Model.Name</h5>
+                    <div class="row g-2 small">
+                        <div class="col-6"><strong>Mã sản phẩm:</strong> LP-@Model.Id.ToString("D4")</div>
+                        <div class="col-6"><strong>Hãng:</strong> @(Model.Brand?.Name ?? "Chưa gán")</div>
+                        <div class="col-6"><strong>Danh mục:</strong> @(Model.Category?.Name ?? "Chưa gán")</div>
+                        <div class="col-6"><strong>Đơn giá:</strong> <span class="text-danger fw-bold">@Model.Price.ToString("N0") đ</span></div>
+                        <div class="col-6"><strong>Tồn kho:</strong> @Model.StockQuantity chiếc</div>
+                        <div class="col-6"><strong>Cấu hình:</strong> @Model.CPU / @Model.RAM / @Model.GPU</div>
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post" class="d-flex gap-2 justify-content-end">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <a asp-action="Index" class="btn btn-light px-4">Hủy bỏ</a>
+                    @if (!hasOrders)
+                    {
+                        <button type="submit" class="btn btn-danger px-4 fw-bold">
+                            <i class="fa-solid fa-trash me-1"></i>Xác nhận Xóa
+                        </button>
+                    }
+                    else
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning px-4 fw-bold">
+                            <i class="fa-solid fa-pen me-1"></i>Sửa tồn kho về 0
+                        </a>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

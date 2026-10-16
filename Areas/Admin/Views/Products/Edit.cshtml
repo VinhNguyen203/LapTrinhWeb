@@ -1,0 +1,131 @@
+@model LaptopShop.Models.Product
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Chỉnh sửa Sản phẩm";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-2">
+        <i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách
+    </a>
+    <h3 class="fw-bold"><i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Chỉnh sửa Sản phẩm #@Model.Id</h3>
+    <span class="text-muted small">Cập nhật thông tin chi tiết, đơn giá hoặc số lượng tồn kho</span>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <!-- Tên sản phẩm -->
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-bold">Tên Sản phẩm / Laptop <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- Thương hiệu -->
+                        <div class="col-md-6">
+                            <label asp-for="BrandId" class="form-label fw-bold">Hãng sản xuất</label>
+                            <select asp-for="BrandId" class="form-select" asp-items="ViewBag.BrandId">
+                                <option value="">-- Chọn Thương hiệu --</option>
+                            </select>
+                            <span asp-validation-for="BrandId" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Danh mục -->
+                        <div class="col-md-6">
+                            <label asp-for="CategoryId" class="form-label fw-bold">Danh mục sản phẩm</label>
+                            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                                <option value="">-- Chọn Danh mục --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- Đơn giá -->
+                        <div class="col-md-6">
+                            <label asp-for="Price" class="form-label fw-bold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="Price" type="number" step="1000" class="form-control" required />
+                                <span class="input-group-text">đ</span>
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Tồn kho -->
+                        <div class="col-md-6">
+                            <label asp-for="StockQuantity" class="form-label fw-bold">Số lượng tồn kho <span class="text-danger">*</span></label>
+                            <input asp-for="StockQuantity" type="number" min="0" class="form-control" required />
+                            <span asp-validation-for="StockQuantity" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h5 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-microchip me-2"></i>Thông số kỹ thuật phần cứng</h5>
+
+                    <div class="row g-3 mb-3">
+                        <!-- CPU -->
+                        <div class="col-md-4">
+                            <label asp-for="CPU" class="form-label fw-bold">Vi xử lý (CPU)</label>
+                            <input asp-for="CPU" class="form-control" />
+                            <span asp-validation-for="CPU" class="text-danger small"></span>
+                        </div>
+
+                        <!-- RAM -->
+                        <div class="col-md-4">
+                            <label asp-for="RAM" class="form-label fw-bold">Bộ nhớ (RAM)</label>
+                            <input asp-for="RAM" class="form-control" />
+                            <span asp-validation-for="RAM" class="text-danger small"></span>
+                        </div>
+
+                        <!-- GPU -->
+                        <div class="col-md-4">
+                            <label asp-for="GPU" class="form-label fw-bold">Card đồ họa (GPU)</label>
+                            <input asp-for="GPU" class="form-control" />
+                            <span asp-validation-for="GPU" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <a asp-action="Index" class="btn btn-light px-4">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i>Cập nhật Thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tóm tắt sản phẩm -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 bg-light">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-info text-primary me-2"></i>Thông tin hiện tại</h5>
+                <p class="mb-2"><strong>Mã sản phẩm:</strong> LP-@Model.Id.ToString("D4")</p>
+                <p class="mb-2"><strong>Trạng thái kho:</strong> 
+                    @if (Model.StockQuantity > 5)
+                    {
+                        <span class="badge bg-success">Còn dồi dào (@Model.StockQuantity)</span>
+                    }
+                    else if (Model.StockQuantity > 0)
+                    {
+                        <span class="badge bg-warning text-dark">Sắp hết (@Model.StockQuantity)</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Hết hàng (0)</span>
+                    }
+                </p>
+                <p class="mb-0 text-muted small">Cập nhật giá và số lượng sẽ phản hồi ngay lập tức trên hệ thống bán lẻ và giỏ hàng của khách.</p>
+            </div>
+        </div>
+    </div>
+</div>
