@@ -28,25 +28,39 @@ namespace LaptopShop.Controllers
             {
                 _cartService.AddItem(productId, quantity);
 
-                int count = _cartService.GetCart()
-                    .Sum(item => item.Quantity);
+                TempData["CartSuccess"] = "Đã thêm sản phẩm vào giỏ hàng thành công!";
 
-                return Json(new
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    success = true,
-                    message = "Đã thêm sản phẩm vào giỏ.",
-                    count = count
-                });
+                    int count = _cartService.GetCart()
+                        .Sum(item => item.Quantity);
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Đã thêm sản phẩm vào giỏ hàng thành công!",
+                        count = count
+                    });
+                }
+
+                return RedirectToAction("Index", "Cart");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    success = false,
-                    message = ex.Message
-                });
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = ex.Message
+                    });
+                }
+
+                TempData["CartError"] = ex.Message;
+                return RedirectToAction("Index", "Cart");
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Remove(int productId)
@@ -54,16 +68,28 @@ namespace LaptopShop.Controllers
             try
             {
                 _cartService.RemoveItem(productId);
+                TempData["CartSuccess"] = "Đã xóa sản phẩm khỏi giỏ hàng.";
 
-                return CartResult("Đã xóa sản phẩm khỏi giỏ.");
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return CartResult("Đã xóa sản phẩm khỏi giỏ hàng.");
+                }
+
+                return RedirectToAction("Index", "Cart");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    success = false,
-                    message = ex.Message
-                });
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = ex.Message
+                    });
+                }
+
+                TempData["CartError"] = ex.Message;
+                return RedirectToAction("Index", "Cart");
             }
         }
 
@@ -74,16 +100,28 @@ namespace LaptopShop.Controllers
             try
             {
                 _cartService.DecreaseItem(productId);
+                TempData["CartSuccess"] = "Đã giảm số lượng sản phẩm.";
 
-                return CartResult("Đã cập nhật số lượng.");
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return CartResult("Đã cập nhật số lượng.");
+                }
+
+                return RedirectToAction("Index", "Cart");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    success = false,
-                    message = ex.Message
-                });
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = ex.Message
+                    });
+                }
+
+                TempData["CartError"] = ex.Message;
+                return RedirectToAction("Index", "Cart");
             }
         }
 

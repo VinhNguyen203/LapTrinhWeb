@@ -98,7 +98,8 @@
                             <form asp-controller="Cart"
                                   asp-action="Add"
                                   method="post"
-                                  class="js-add-to-cart d-inline">
+                                  class="d-inline">
+                                @Html.AntiForgeryToken()
                                 <input type="hidden" name="productId" value="@product.Id" />
                                 <button type="submit"
                                         class="btn rounded-circle shadow-sm d-flex align-items-center justify-content-center"
@@ -154,5 +155,4 @@
 </style>
 
 @section Scripts {
-    <script src="~/js/cart.js" asp-append-version="true"></script>
 }

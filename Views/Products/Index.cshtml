@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LaptopShop.Models.Product>
+@model IEnumerable<LaptopShop.Models.Product>
 
 @{
     ViewData["Title"] = "Danh Sách Sản Phẩm";
@@ -101,9 +101,13 @@
                                     <span class="text-danger fw-extrabold fs-5" style="letter-spacing: -0.5px;">@item.Price.ToString("N0")đ</span><br/>
                                     <del class="text-muted small text-decoration-line-through">@originalPrice.ToString("N0")đ</del>
                                 </div>
-                                <button class="btn btn-gradient-cart rounded-circle shadow-sm d-flex align-items-center justify-content-center" title="Thêm vào giỏ hàng">
-                                    <i class="fa-solid fa-cart-plus fs-5"></i>
-                                </button>
+                                <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@item.Id" />
+                                    <button type="submit" class="btn btn-gradient-cart rounded-circle shadow-sm d-flex align-items-center justify-content-center" title="Thêm vào giỏ hàng">
+                                        <i class="fa-solid fa-cart-plus fs-5"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>

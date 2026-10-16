@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using LaptopShop.Models;
 using Microsoft.EntityFrameworkCore;
@@ -18,57 +18,63 @@ namespace LaptopShop.Services
             _cartService = cartService;
         }
 
-        public int PlaceOrder(CheckoutViewModel input)
+        public int PlaceOrder(CheckoutViewModel input, string? userId = null)
         {
             Validator.ValidateObject(
                 input,
                 new ValidationContext(input),
                 validateAllProperties: true);
 
-            using var transaction = _context.Database
-                .BeginTransaction(IsolationLevel.Serializable);
+            var strategy = _context.Database.CreateExecutionStrategy();
 
-            var items = _cartService.GetCheckoutItems();
-
-            var order = new Order
+            return strategy.Execute(() =>
             {
-                CustomerName = input.CustomerName.Trim(),
-                PhoneNumber = input.PhoneNumber.Trim(),
-                ShippingAddress = input.ShippingAddress.Trim(),
-                OrderDate = DateTime.Now,
-                TotalAmount = items.Sum(item => item.TotalPrice),
-                Status = "Pending"
-            };
+                using var transaction = _context.Database
+                    .BeginTransaction(IsolationLevel.Serializable);
 
-            foreach (var item in items.OrderBy(item => item.ProductId))
-            {
-                int affectedRows = _context.Products
-                    .Where(product =>
-                        product.Id == item.ProductId &&
-                        product.StockQuantity >= item.Quantity)
-                    .ExecuteUpdate(setters => setters.SetProperty(
-                        product => product.StockQuantity,
-                        product => product.StockQuantity - item.Quantity));
+                var items = _cartService.GetCheckoutItems();
 
-                if (affectedRows != 1)
+                var order = new Order
                 {
-                    throw new InvalidOperationException($"{item.ProductName} không còn đủ tồn kho.");
+                    UserId = userId,
+                    CustomerName = input.CustomerName.Trim(),
+                    PhoneNumber = input.PhoneNumber.Trim(),
+                    ShippingAddress = input.ShippingAddress.Trim(),
+                    OrderDate = DateTime.Now,
+                    TotalAmount = items.Sum(item => item.TotalPrice),
+                    Status = "Pending"
+                };
+
+                foreach (var item in items.OrderBy(item => item.ProductId))
+                {
+                    int affectedRows = _context.Products
+                        .Where(product =>
+                            product.Id == item.ProductId &&
+                            product.StockQuantity >= item.Quantity)
+                        .ExecuteUpdate(setters => setters.SetProperty(
+                            product => product.StockQuantity,
+                            product => product.StockQuantity - item.Quantity));
+
+                    if (affectedRows != 1)
+                    {
+                        throw new InvalidOperationException($"{item.ProductName} không còn đủ tồn kho.");
+                    }
+
+                    order.OrderDetails.Add(new OrderDetail
+                    {
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice
+                    });
                 }
 
-                order.OrderDetails.Add(new OrderDetail
-                {
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice
-                });
-            }
+                _context.Orders.Add(order);
+                _context.SaveChanges();
 
-            _context.Orders.Add(order);
-            _context.SaveChanges();
+                transaction.Commit();
 
-            transaction.Commit();
-
-            return order.Id;
+                return order.Id;
+            });
         }
     }
 }

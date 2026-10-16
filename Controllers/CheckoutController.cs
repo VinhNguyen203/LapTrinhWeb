@@ -1,4 +1,4 @@
-﻿using LaptopShop.Models;
+using LaptopShop.Models;
 using LaptopShop.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -50,7 +50,8 @@ namespace LaptopShop.Controllers
 
             try
             {
-                int orderId = _checkoutService.PlaceOrder(input);
+                string? userId = HttpContext.Session.GetString("UserId");
+                int orderId = _checkoutService.PlaceOrder(input, userId);
 
                 _cartService.ClearCart();
 
