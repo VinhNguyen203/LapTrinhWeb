@@ -38,6 +38,9 @@ namespace LaptopShop.Models
         /// <summary>Bảng người dùng hệ thống</summary>
         public DbSet<AppUser> Users { get; set; }
 
+        /// <summary>Bảng mã giảm giá & khuyến mãi</summary>
+        public DbSet<Coupon> Coupons { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

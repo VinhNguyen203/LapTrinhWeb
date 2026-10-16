@@ -1,0 +1,81 @@
+@model LaptopShop.Models.Review
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = $"Chi tiết Đánh giá #{Model.Id}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="fa-solid fa-star me-2 text-warning"></i>Chi tiết Đánh giá #{Model.Id}</h3>
+        <span class="text-muted small">Thời gian gửi: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</span>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách
+    </a>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="avatar me-3" 
+                         style="width: 45px; height: 45px; border-radius: 50%; background: #f59e0b; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem;">
+                        @(string.IsNullOrEmpty(Model.UserName) ? "K" : Model.UserName.Substring(0, 1).ToUpper())
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">@(string.IsNullOrEmpty(Model.UserName) ? "Khách hàng" : Model.UserName)</h6>
+                        <small class="text-muted">User ID: @(Model.UserId ?? "-")</small>
+                    </div>
+                </div>
+                <div class="text-warning fs-5">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= Model.Rating)
+                        {
+                            <i class="fa-solid fa-star"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-regular fa-star text-muted opacity-50"></i>
+                        }
+                    }
+                    <span class="fw-bold text-dark fs-6 ms-1">(@Model.Rating/5)</span>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-4">
+                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Sản phẩm được đánh giá</label>
+                    <div class="p-3 bg-light rounded-3 d-flex align-items-center">
+                        <i class="fa-solid fa-laptop text-primary fs-3 me-3"></i>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">
+                                @(Model.Product != null ? Model.Product.Name : $"Sản phẩm #{Model.ProductId}")
+                            </h6>
+                            @if (Model.Product != null)
+                            {
+                                <small class="text-muted">Giá: @Model.Product.Price.ToString("N0") đ | CPU: @Model.Product.CPU | RAM: @Model.Product.RAM</small>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Nội dung nhận xét</label>
+                    <div class="p-3 border rounded-3 bg-white text-dark fs-6" style="min-height: 100px;">
+                        @Model.Comment
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa đánh giá này?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="fa-solid fa-trash-can me-1"></i>Xóa đánh giá này
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

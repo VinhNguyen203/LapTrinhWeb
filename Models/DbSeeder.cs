@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LaptopShop.Models
 {
@@ -10,11 +13,139 @@ namespace LaptopShop.Models
             using var context = new AppDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>());
 
-            // Đảm bảo database đã được tạo hoặc cập nhật mới nhất
-            // context.Database.EnsureCreated();
+            try
+            {
+                // 1. Tạo bảng Coupons nếu chưa tồn tại
+                await context.Database.ExecuteSqlRawAsync(@"
+                    IF OBJECT_ID(N'[dbo].[Coupons]', N'U') IS NULL
+                    BEGIN
+                        CREATE TABLE [dbo].[Coupons](
+                            [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            [Code] NVARCHAR(50) NOT NULL,
+                            [Description] NVARCHAR(255) NULL,
+                            [DiscountType] NVARCHAR(20) NOT NULL DEFAULT 'Amount',
+                            [DiscountValue] DECIMAL(18,2) NOT NULL,
+                            [MinOrderAmount] DECIMAL(18,2) NOT NULL DEFAULT 0,
+                            [ExpiryDate] DATETIME2 NOT NULL,
+                            [UsageCount] INT NOT NULL DEFAULT 0,
+                            [MaxUsage] INT NOT NULL DEFAULT 100,
+                            [IsActive] BIT NOT NULL DEFAULT 1,
+                            [CreatedAt] DATETIME2 NOT NULL DEFAULT GETDATE()
+                        );
+                    END
+                ");
 
-            // Bạn có thể thêm dữ liệu mẫu (seed data) cho Brand, Category, Product hoặc Admin tại đây nếu cần.
-            await Task.CompletedTask;
+                // 2. Thêm dữ liệu mẫu cho Coupons nếu trống
+                if (!await context.Coupons.AnyAsync())
+                {
+                    context.Coupons.AddRange(
+                        new Coupon
+                        {
+                            Code = "LAPTOP2026",
+                            Description = "Khuyến mãi chào năm mới 2026 cho đơn hàng từ 15 triệu",
+                            DiscountType = "Amount",
+                            DiscountValue = 500000,
+                            MinOrderAmount = 15000000,
+                            ExpiryDate = DateTime.Now.AddMonths(3),
+                            UsageCount = 14,
+                            MaxUsage = 100,
+                            IsActive = true,
+                            CreatedAt = DateTime.Now.AddDays(-10)
+                        },
+                        new Coupon
+                        {
+                            Code = "GAMINGVIP",
+                            Description = "Giảm trực tiếp 1.000.000đ cho Laptop Gaming cấu hình khủng",
+                            DiscountType = "Amount",
+                            DiscountValue = 1000000,
+                            MinOrderAmount = 25000000,
+                            ExpiryDate = DateTime.Now.AddMonths(2),
+                            UsageCount = 28,
+                            MaxUsage = 50,
+                            IsActive = true,
+                            CreatedAt = DateTime.Now.AddDays(-5)
+                        },
+                        new Coupon
+                        {
+                            Code = "FREESHIP",
+                            Description = "Miễn phí vận chuyển toàn quốc cho đơn hàng từ 10 triệu",
+                            DiscountType = "Amount",
+                            DiscountValue = 150000,
+                            MinOrderAmount = 10000000,
+                            ExpiryDate = DateTime.Now.AddMonths(6),
+                            UsageCount = 65,
+                            MaxUsage = 200,
+                            IsActive = true,
+                            CreatedAt = DateTime.Now.AddDays(-15)
+                        },
+                        new Coupon
+                        {
+                            Code = "WELCOME100K",
+                            Description = "Voucher 100K dành tặng khách hàng mua lần đầu",
+                            DiscountType = "Amount",
+                            DiscountValue = 100000,
+                            MinOrderAmount = 5000000,
+                            ExpiryDate = DateTime.Now.AddMonths(1),
+                            UsageCount = 89,
+                            MaxUsage = 500,
+                            IsActive = true,
+                            CreatedAt = DateTime.Now.AddDays(-20)
+                        }
+                    );
+                    await context.SaveChangesAsync();
+                }
+
+                // 3. Thêm dữ liệu mẫu cho Reviews nếu trống
+                if (!await context.Reviews.AnyAsync())
+                {
+                    var firstProduct = await context.Products.FirstOrDefaultAsync();
+                    int prodId = firstProduct?.Id ?? 1;
+
+                    context.Reviews.AddRange(
+                        new Review
+                        {
+                            ProductId = prodId,
+                            UserId = "1",
+                            UserName = "Nguyễn Văn Khách",
+                            Rating = 5,
+                            Comment = "Máy chạy siêu mượt, tản nhiệt tốt, đóng gói rất cẩn thận và giao hàng siêu tốc!",
+                            CreatedAt = DateTime.Now.AddDays(-2)
+                        },
+                        new Review
+                        {
+                            ProductId = prodId,
+                            UserId = "2",
+                            UserName = "Trần Thị Mai",
+                            Rating = 5,
+                            Comment = "Thiết kế mỏng nhẹ, bàn phím gõ rất êm tay. Nhân viên tư vấn nhiệt tình 10/10.",
+                            CreatedAt = DateTime.Now.AddDays(-4)
+                        },
+                        new Review
+                        {
+                            ProductId = prodId,
+                            UserId = "3",
+                            UserName = "Lê Hoàng Nam",
+                            Rating = 4,
+                            Comment = "Cấu hình khỏe trong tầm giá, màn hình đẹp sắc nét, pin dùng tầm 4-5 tiếng ổn định.",
+                            CreatedAt = DateTime.Now.AddDays(-7)
+                        },
+                        new Review
+                        {
+                            ProductId = prodId,
+                            UserId = "4",
+                            UserName = "Phạm Đức Anh",
+                            Rating = 5,
+                            Comment = "Đã test thử các tựa game nặng, FPS ổn định không giật lag. Rất đáng đồng tiền bát gạo!",
+                            CreatedAt = DateTime.Now.AddDays(-10)
+                        }
+                    );
+                    await context.SaveChangesAsync();
+                }
+            }
+            catch
+            {
+                // Bỏ qua lỗi seed nếu database đang bị khóa hoặc đã có sẵn
+            }
         }
     }
 }

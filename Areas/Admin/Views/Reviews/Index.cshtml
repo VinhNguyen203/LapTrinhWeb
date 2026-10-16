@@ -1,0 +1,207 @@
+@model LaptopShop.Helpers.PaginatedList<LaptopShop.Models.Review>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Đánh giá Khách hàng";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="fa-solid fa-star me-2 text-warning"></i>Đánh giá Khách hàng</h3>
+        <span class="text-muted small">Quản lý nhận xét, phản hồi & xếp hạng chất lượng sản phẩm từ người dùng</span>
+    </div>
+</div>
+
+<!-- Alert messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Bộ lọc & Tìm kiếm -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="searchString" class="form-control" 
+                           placeholder="Tìm theo tên khách, sản phẩm hoặc nội dung nhận xét..." 
+                           value="@ViewBag.CurrentSearch" />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="ratingFilter" class="form-select" onchange="this.form.submit()">
+                    <option value="" selected="@(!ViewBag.RatingFilter.HasValue ? "selected" : null)">-- Tất cả số sao --</option>
+                    <option value="5" selected="@(ViewBag.RatingFilter == 5 ? "selected" : null)">5 sao ⭐⭐⭐⭐⭐</option>
+                    <option value="4" selected="@(ViewBag.RatingFilter == 4 ? "selected" : null)">4 sao ⭐⭐⭐⭐</option>
+                    <option value="3" selected="@(ViewBag.RatingFilter == 3 ? "selected" : null)">3 sao ⭐⭐⭐</option>
+                    <option value="2" selected="@(ViewBag.RatingFilter == 2 ? "selected" : null)">2 sao ⭐⭐</option>
+                    <option value="1" selected="@(ViewBag.RatingFilter == 1 ? "selected" : null)">1 sao ⭐</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-3">
+                    <i class="fa-solid fa-filter me-1"></i>Lọc
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-rotate-right me-1"></i>Đặt lại
+                </a>
+                <span class="ms-auto align-self-center text-muted small">
+                    Tổng: <strong>@Model.TotalCount</strong> đánh giá
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bảng dữ liệu đánh giá -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 70px;">ID</th>
+                        <th>Khách hàng</th>
+                        <th>Sản phẩm</th>
+                        <th>Xếp hạng</th>
+                        <th>Nội dung nhận xét</th>
+                        <th>Ngày gửi</th>
+                        <th class="text-center" style="width: 140px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-comment-slash fs-1 d-block mb-3 text-secondary"></i>
+                                Chưa có phản hồi hoặc đánh giá nào phù hợp.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var review in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-muted">#@review.Id</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar me-2" 
+                                             style="width: 36px; height: 36px; border-radius: 50%; background: #f59e0b; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;">
+                                            @(string.IsNullOrEmpty(review.UserName) ? "K" : review.UserName.Substring(0, 1).ToUpper())
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@(string.IsNullOrEmpty(review.UserName) ? "Khách hàng" : review.UserName)</div>
+                                            <small class="text-muted">User ID: @(review.UserId ?? "-")</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (review.Product != null)
+                                    {
+                                        <span class="fw-semibold text-dark d-block text-truncate" style="max-width: 220px;" title="@review.Product.Name">
+                                            @review.Product.Name
+                                        </span>
+                                        <small class="text-muted">Mã: #@review.ProductId</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sản phẩm #@review.ProductId</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="text-warning">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= review.Rating)
+                                            {
+                                                <i class="fa-solid fa-star"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-regular fa-star text-muted opacity-50"></i>
+                                            }
+                                        }
+                                        <span class="fw-bold ms-1 text-dark small">(@review.Rating/5)</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-secondary small d-block text-truncate" style="max-width: 280px;" title="@review.Comment">
+                                        @review.Comment
+                                    </span>
+                                </td>
+                                <td class="text-muted small">
+                                    @review.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@review.Id" class="btn btn-outline-info" title="Xem chi tiết">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@review.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger" title="Xóa đánh giá">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Phân trang -->
+@if (Model.TotalPages > 1)
+{
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <span class="text-muted small">
+            Trang <strong>@Model.PageIndex</strong> / <strong>@Model.TotalPages</strong>
+        </span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" 
+                       asp-route-pageNumber="@(Model.PageIndex - 1)"
+                       asp-route-searchString="@ViewBag.CurrentSearch"
+                       asp-route-ratingFilter="@ViewBag.RatingFilter">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </a>
+                </li>
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-pageNumber="@i"
+                           asp-route-searchString="@ViewBag.CurrentSearch"
+                           asp-route-ratingFilter="@ViewBag.RatingFilter">@i</a>
+                    </li>
+                }
+                <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" 
+                       asp-route-pageNumber="@(Model.PageIndex + 1)"
+                       asp-route-searchString="@ViewBag.CurrentSearch"
+                       asp-route-ratingFilter="@ViewBag.RatingFilter">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+}

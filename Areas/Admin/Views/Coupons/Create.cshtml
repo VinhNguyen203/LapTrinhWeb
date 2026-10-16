@@ -1,0 +1,84 @@
+@model LaptopShop.Models.Coupon
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Thêm mới Mã giảm giá";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="fa-solid fa-plus me-2 text-primary"></i>Tạo Mã giảm giá Mới</h3>
+        <span class="text-muted small">Phát hành voucher khuyến mãi cho người mua hàng</span>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label fw-semibold small">Mã Code <span class="text-danger">*</span></label>
+                            <input asp-for="Code" class="form-control text-uppercase font-monospace fw-bold" placeholder="VD: LAPTOP2026" required />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DiscountType" class="form-label fw-semibold small">Hình thức giảm <span class="text-danger">*</span></label>
+                            <select asp-for="DiscountType" class="form-select">
+                                <option value="Amount">Số tiền cố định (VNĐ)</option>
+                                <option value="Percent">Phần trăm (%)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="DiscountValue" class="form-label fw-semibold small">Giá trị giảm (VNĐ hoặc %) <span class="text-danger">*</span></label>
+                            <input asp-for="DiscountValue" type="number" class="form-control" placeholder="VD: 500000 hoặc 10" required />
+                            <span asp-validation-for="DiscountValue" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="MinOrderAmount" class="form-label fw-semibold small">Đơn hàng tối thiểu (VNĐ)</label>
+                            <input asp-for="MinOrderAmount" type="number" class="form-control" placeholder="VD: 15000000" />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="ExpiryDate" class="form-label fw-semibold small">Hạn sử dụng <span class="text-danger">*</span></label>
+                            <input asp-for="ExpiryDate" type="date" class="form-control" required />
+                            <span asp-validation-for="ExpiryDate" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="MaxUsage" class="form-label fw-semibold small">Số lượt dùng tối đa</label>
+                            <input asp-for="MaxUsage" type="number" class="form-control" placeholder="VD: 100" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold small">Mô tả chương trình khuyến mãi</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập tóm tắt điều kiện hoặc quyền lợi..."></textarea>
+                    </div>
+
+                    <div class="mb-4 form-check form-switch">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" checked>
+                        <label class="form-check-label fw-semibold small" for="IsActive">Kích hoạt sử dụng ngay</label>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                            <i class="fa-solid fa-check me-1"></i>Tạo mã giảm giá
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
