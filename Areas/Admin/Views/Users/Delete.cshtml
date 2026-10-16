@@ -1,0 +1,98 @@
+@model LaptopShop.Models.AppUser
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Xóa người dùng";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-trash me-2 text-danger"></i>Xóa người dùng</h2>
+        <small class="text-muted">Xác nhận xóa tài khoản người dùng</small>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <!-- Cảnh báo xóa -->
+        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+            <div>
+                <strong>Cảnh báo!</strong> Hành động này không thể hoàn tác.
+                Tài khoản sẽ bị xóa vĩnh viễn khỏi hệ thống.
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 border-top border-danger border-3">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-person-x me-2"></i>Thông tin người dùng sẽ bị xóa</h5>
+            </div>
+            <div class="card-body">
+                <!-- Hiển thị thông tin người dùng -->
+                <table class="table table-borderless mb-4">
+                    <tbody>
+                        <tr>
+                            <td class="fw-semibold text-muted" style="width:35%">
+                                <i class="bi bi-hash me-2"></i>ID
+                            </td>
+                            <td>#@Model.Id</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold text-muted">
+                                <i class="bi bi-person me-2"></i>Họ và tên
+                            </td>
+                            <td class="fw-bold">@Model.FullName</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold text-muted">
+                                <i class="bi bi-envelope me-2"></i>Email
+                            </td>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold text-muted">
+                                <i class="bi bi-shield me-2"></i>Vai trò
+                            </td>
+                            <td>
+                                @if (Model.Role == "Admin")
+                                {
+                                    <span class="badge bg-danger">Admin</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Customer</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold text-muted">
+                                <i class="bi bi-calendar me-2"></i>Ngày tạo
+                            </td>
+                            <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Form xác nhận xóa -->
+                <form asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>Xác nhận xóa
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x me-2"></i>Hủy bỏ
+                        </a>
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
+                            <i class="bi bi-eye me-2"></i>Xem lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

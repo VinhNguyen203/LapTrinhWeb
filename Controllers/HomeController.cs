@@ -1,6 +1,6 @@
 // Controllers/HomeController.cs
 // Phần của Khoa / Client chung
-using LaptopShop.Data;
+using LaptopShop.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,9 +8,9 @@ namespace LaptopShop.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
 
-        public HomeController(ApplicationDbContext context)
+        public HomeController(AppDbContext context)
         {
             _context = context;
         }

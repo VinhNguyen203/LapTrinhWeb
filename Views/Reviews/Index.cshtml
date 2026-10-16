@@ -1,0 +1,95 @@
+﻿@model IEnumerable<LaptopShop.Models.Review>
+
+@{
+    ViewData["Title"] = "Quản lý Đánh giá";
+    var currentRating = ViewData["CurrentRating"] as int?;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary mb-0">Quản lý Đánh giá Khách hàng</h2>
+
+        <!-- THANH LỌC THEO SỐ SAO -->
+        <div class="btn-group" role="group">
+            <a asp-action="Index" class="btn @(currentRating == null ? "btn-primary" : "btn-outline-primary")">Tất cả</a>
+            <a asp-action="Index" asp-route-rating="5" class="btn @(currentRating == 5 ? "btn-warning text-dark fw-bold" : "btn-outline-warning text-dark")">5 ★</a>
+            <a asp-action="Index" asp-route-rating="4" class="btn @(currentRating == 4 ? "btn-warning text-dark fw-bold" : "btn-outline-warning text-dark")">4 ★</a>
+            <a asp-action="Index" asp-route-rating="3" class="btn @(currentRating == 3 ? "btn-warning text-dark fw-bold" : "btn-outline-warning text-dark")">3 ★</a>
+            <a asp-action="Index" asp-route-rating="2" class="btn @(currentRating == 2 ? "btn-warning text-dark fw-bold" : "btn-outline-warning text-dark")">2 ★</a>
+            <a asp-action="Index" asp-route-rating="1" class="btn @(currentRating == 1 ? "btn-warning text-dark fw-bold" : "btn-outline-warning text-dark")">1 ★</a>
+        </div>
+    </div>
+
+    <!-- BẢNG HIỂN THỊ CÓ HỖ TRỢ SẮP XẾP TRÊN TIÊU ĐỀ -->
+    <table class="table table-bordered table-striped table-hover shadow-sm bg-white rounded">
+        <thead class="table-dark">
+            <tr>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["IdSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
+                        Mã ĐG ↕
+                    </a>
+                </th>
+                <th>Sản phẩm</th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
+                        Khách hàng (Tên) ↕
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["RatingSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
+                        Số Sao ↕
+                    </a>
+                </th>
+                <th>Nội dung bình luận</th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["DateSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
+                        Ngày đăng ↕
+                    </a>
+                </th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@item.Id</td>
+                        <td class="fw-bold text-info">
+                            @(item.Product != null ? item.Product.Name : "Sản phẩm không xác định")
+                        </td>
+                        <td>@item.UserName</td>
+                        <td class="text-warning fs-5">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= item.Rating)
+                                {
+                                    <span>★</span>
+                                }
+                                else
+                                {
+
+                                    <span class="text-muted">☆</span>
+                                }
+                            }
+                        </td>
+                        <td>@item.Comment</td>
+                        <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này không?');" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Không tìm thấy đánh giá nào phù hợp.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

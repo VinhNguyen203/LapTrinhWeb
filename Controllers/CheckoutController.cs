@@ -1,5 +1,4 @@
-﻿using LaptopShop.Data;
-using LaptopShop.Models;
+﻿using LaptopShop.Models;
 using LaptopShop.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,12 +10,12 @@ namespace LaptopShop.Controllers
     {
         private readonly CartService _cartService;
         private readonly CheckoutService _checkoutService;
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
 
         public CheckoutController(
             CartService cartService,
             CheckoutService checkoutService,
-            ApplicationDbContext context)
+            AppDbContext context)
         {
             _cartService = cartService;
             _checkoutService = checkoutService;

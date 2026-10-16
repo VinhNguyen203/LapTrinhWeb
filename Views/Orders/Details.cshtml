@@ -1,0 +1,77 @@
+﻿@model LaptopShop.Models.Order
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.Id;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">Chi tiết Đơn hàng: #@Model.Id</h2>
+        <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+    </div>
+
+    <div class="row">
+        <!-- Cột thông tin khách hàng -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Thông tin Khách hàng</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Họ tên:</strong> @Model.CustomerName</p>
+                    <p><strong>Điện thoại:</strong> @Model.PhoneNumber</p>
+                    <p><strong>Địa chỉ giao:</strong> @Model.ShippingAddress</p>
+                    <p><strong>Ngày đặt:</strong> @(Model.OrderDate.HasValue ? Model.OrderDate.Value.ToString("dd/MM/yyyy HH:mm") : "")</p>
+                    <p>
+                        <strong>Trạng thái:</strong>
+                        <span class="badge bg-warning text-dark">@Model.Status</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột danh sách sản phẩm -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Sản phẩm đã đặt</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detail in Model.OrderDetails)
+                            {
+                                var qty = detail.Quantity ?? 0;
+                                var price = detail.UnitPrice ?? 0;
+                                var lineTotal = qty * price;
+                                <tr>
+                                    <td>
+                                        <!-- Nếu có tên sản phẩm thì in ra, không có thì in 'Sản phẩm không xác định' -->
+                                        @(detail.Product != null ? detail.Product.Name : "Sản phẩm không xác định")
+                                    </td>
+                                    <td class="text-center">@qty</td>
+                                    <td class="text-end text-danger">@string.Format("{0:N0}", price) đ</td>
+                                    <td class="text-end text-danger fw-bold">@string.Format("{0:N0}", lineTotal) đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Tổng thanh toán:</td>
+                                <td class="text-end text-danger fw-bold fs-5">@string.Format("{0:N0}", Model.TotalAmount) VNĐ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

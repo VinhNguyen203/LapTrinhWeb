@@ -1,0 +1,124 @@
+﻿@model IEnumerable<LaptopShop.Models.Order>
+
+@{
+    ViewData["Title"] = "Quản lý Đơn hàng";
+    var currentFilter = ViewData["CurrentFilter"]?.ToString();
+    var currentStatus = ViewData["CurrentStatus"]?.ToString();
+}
+
+<div class="container mt-4">
+    <h2 class="text-primary mb-4">Quản lý Đơn hàng</h2>
+
+    <!-- THANH TÌM KIẾM VÀ LỌC TRẠNG THÁI GOM CHUNG TRONG 1 FORM -->
+    <form asp-action="Index" method="get" class="row mb-4 align-items-center g-2">
+        <!-- Ô tìm kiếm -->
+        <div class="col-md-4">
+            <div class="input-group">
+                <input type="text" name="searchString" value="@currentFilter" class="form-control" placeholder="Mã ĐH hoặc tên khách..." />
+                <!-- Giữ lại giá trị sắp xếp hiện tại nếu có -->
+                @if (Context.Request.Query.ContainsKey("sortOrder"))
+                {
+                    <input type="hidden" name="sortOrder" value="@Context.Request.Query["sortOrder"]" />
+                }
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search"></i> Tìm</button>
+            </div>
+        </div>
+
+        <!-- Dropdown lọc trạng thái (Tự động submit khi thay đổi) -->
+        <div class="col-md-4">
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Tất cả trạng thái --</option>
+                <option value="Đang xử lý" selected="@(currentStatus == "Đang xử lý")">Đang xử lý</option>
+                <option value="Đang giao" selected="@(currentStatus == "Đang giao")">Đang giao</option>
+                <option value="Đã giao" selected="@(currentStatus == "Đã giao")">Đã giao</option>
+                <option value="Đã hủy" selected="@(currentStatus == "Đã hủy")">Đã hủy</option>
+            </select>
+        </div>
+
+        <!-- Nút xóa bộ lọc -->
+        <div class="col-md-4 text-md-end">
+            @if (!string.IsNullOrEmpty(currentFilter) || !string.IsNullOrEmpty(currentStatus))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+            }
+        </div>
+    </form>
+
+    <!-- BẢNG DỮ LIỆU CÓ HỖ TRỢ CLICK SẮP XẾP TRÊN TIÊU ĐỀ -->
+    <table class="table table-bordered table-striped table-hover shadow-sm bg-white rounded">
+        <thead class="table-dark">
+            <tr>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["IdSortParm"]" asp-route-searchString="@currentFilter" asp-route-status="@currentStatus" class="text-white text-decoration-none">
+                        Mã ĐH ↕
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParm"]" asp-route-searchString="@currentFilter" asp-route-status="@currentStatus" class="text-white text-decoration-none">
+                        Khách hàng ↕
+                    </a>
+                </th>
+                <th>Số điện thoại</th>
+                <th>Địa chỉ giao hàng</th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["DateSortParm"]" asp-route-searchString="@currentFilter" asp-route-status="@currentStatus" class="text-white text-decoration-none">
+                        Ngày đặt ↕
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["PriceSortParm"]" asp-route-searchString="@currentFilter" asp-route-status="@currentStatus" class="text-white text-decoration-none">
+                        Tổng tiền ↕
+                    </a>
+                </th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">#@item.Id</td>
+                        <td>@item.CustomerName</td>
+                        <td>@item.PhoneNumber</td>
+                        <td>@item.ShippingAddress</td>
+                        <td class="text-center">@(item.OrderDate.HasValue ? item.OrderDate.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
+                        <td class="text-danger fw-bold">@string.Format("{0:N0}", item.TotalAmount ?? 0) VNĐ</td>
+                        <td>
+                            @if (item.Status == "Đã giao")
+                            {
+                                <span class="badge bg-success">Đã giao</span>
+                            }
+                            else if (item.Status == "Đang giao")
+                            {
+
+                                <span class="badge bg-primary">Đang giao</span>
+                            }
+                            else if (item.Status == "Đã hủy")
+                            {
+
+                                <span class="badge bg-danger">Đã hủy</span>
+                            }
+                            else
+                            {
+
+                                <span class="badge bg-warning text-dark">Đang xử lý</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">Chi tiết</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">Không tìm thấy đơn hàng nào phù hợp.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Data;
-using LaptopShop.Data;
 using LaptopShop.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,11 +7,11 @@ namespace LaptopShop.Services
 {
     public class CheckoutService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
         private readonly CartService _cartService;
 
         public CheckoutService(
-            ApplicationDbContext context,
+            AppDbContext context,
             CartService cartService)
         {
             _context = context;
@@ -21,7 +20,6 @@ namespace LaptopShop.Services
 
         public int PlaceOrder(CheckoutViewModel input)
         {
-            // Kiểm tra dữ liệu trước khi thay đổi database.
             Validator.ValidateObject(
                 input,
                 new ValidationContext(input),
@@ -30,7 +28,6 @@ namespace LaptopShop.Services
             using var transaction = _context.Database
                 .BeginTransaction(IsolationLevel.Serializable);
 
-            // Đọc lại giá và kiểm tra giỏ bên trong transaction.
             var items = _cartService.GetCheckoutItems();
 
             var order = new Order
@@ -38,14 +35,13 @@ namespace LaptopShop.Services
                 CustomerName = input.CustomerName.Trim(),
                 PhoneNumber = input.PhoneNumber.Trim(),
                 ShippingAddress = input.ShippingAddress.Trim(),
-                OrderDate = DateTime.UtcNow,
+                OrderDate = DateTime.Now,
                 TotalAmount = items.Sum(item => item.TotalPrice),
                 Status = "Pending"
             };
 
             foreach (var item in items.OrderBy(item => item.ProductId))
             {
-                // Chỉ trừ khi database vẫn còn đủ hàng.
                 int affectedRows = _context.Products
                     .Where(product =>
                         product.Id == item.ProductId &&
@@ -56,10 +52,9 @@ namespace LaptopShop.Services
 
                 if (affectedRows != 1)
                 {
-                    throw new InvalidOperationException(
-                        $"{item.ProductName} không còn đủ tồn kho.");
+                    throw new InvalidOperationException($"{item.ProductName} không còn đủ tồn kho.");
                 }
-                
+
                 order.OrderDetails.Add(new OrderDetail
                 {
                     ProductId = item.ProductId,

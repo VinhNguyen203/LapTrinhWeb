@@ -1,0 +1,229 @@
+@model LaptopShop.Models.RegisterViewModel
+@{
+    Layout = null; // Trang đăng ký độc lập
+    ViewData["Title"] = "Đăng ký - LaptopShop";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .register-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .register-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .register-header .brand-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .register-body {
+            padding: 2rem;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .btn-register:hover {
+            opacity: 0.92;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .input-group-text {
+            background: #f8f9fa;
+        }
+
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 6px;
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <!-- Tiêu đề màu tím xanh giống đăng nhập -->
+        <div class="register-header">
+            <div class="brand-icon">
+                <i class="bi bi-person-plus"></i>
+            </div>
+            <h2 class="fw-bold mb-1">LaptopShop</h2>
+            <p class="mb-0 opacity-75">Tạo tài khoản thành viên mới</p>
+        </div>
+
+        <!-- Form đăng ký -->
+        <div class="register-body">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger shadow-sm py-2" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <div asp-validation-summary="ModelOnly" class="d-inline"></div>
+                </div>
+            }
+
+            <form asp-action="Register" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Họ và tên -->
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-person me-1"></i>Họ và tên
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person text-muted"></i></span>
+                        <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" autocomplete="name" required />
+                    </div>
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-envelope me-1"></i>Email
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-at text-muted"></i></span>
+                        <input asp-for="Email" class="form-control" placeholder="email@example.com" autocomplete="email" required />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <!-- Mật khẩu -->
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-lock me-1"></i>Mật khẩu
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key text-muted"></i></span>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Ít nhất 6 ký tự"
+                               id="passwordInput" oninput="checkStrength(this.value)" autocomplete="new-password" required />
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('passwordInput', 'eyeIcon1')">
+                            <i class="bi bi-eye" id="eyeIcon1"></i>
+                        </button>
+                    </div>
+                    <!-- Thanh đánh giá độ mạnh mật khẩu -->
+                    <div id="strengthBar" class="password-strength bg-secondary" style="width:0%"></div>
+                    <small id="strengthText" class="text-muted"></small>
+                    <span asp-validation-for="Password" class="text-danger small d-block"></span>
+                </div>
+
+                <!-- Xác nhận mật khẩu -->
+                <div class="mb-4">
+                    <label asp-for="ConfirmPassword" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-lock-fill me-1"></i>Xác nhận mật khẩu
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-shield-check text-muted"></i></span>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu"
+                               id="confirmInput" autocomplete="new-password" required />
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmInput', 'eyeIcon2')">
+                            <i class="bi bi-eye" id="eyeIcon2"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+
+                <!-- Nút đăng ký -->
+                <button type="submit" class="btn btn-register shadow-sm">
+                    <i class="bi bi-person-check me-2"></i>Tạo tài khoản
+                </button>
+            </form>
+
+            <!-- Liên kết đăng nhập -->
+            <hr class="my-4" />
+            <div class="text-center">
+                <span class="text-muted">Đã có tài khoản?</span>
+                <a asp-action="Login" class="ms-1 fw-semibold text-decoration-none" style="color: #667eea;">
+                    Đăng nhập ngay
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+
+        function checkStrength(value) {
+            const bar = document.getElementById('strengthBar');
+            const text = document.getElementById('strengthText');
+            let strength = 0;
+            if (value.length >= 6) strength++;
+            if (value.length >= 10) strength++;
+            if (/[A-Z]/.test(value)) strength++;
+            if (/[0-9]/.test(value)) strength++;
+            if (/[^A-Za-z0-9]/.test(value)) strength++;
+
+            const levels = [
+                { width: '20%', color: 'bg-danger', label: 'Rất yếu' },
+                { width: '40%', color: 'bg-warning', label: 'Yếu' },
+                { width: '60%', color: 'bg-info', label: 'Trung bình' },
+                { width: '80%', color: 'bg-primary', label: 'Mạnh' },
+                { width: '100%', color: 'bg-success', label: 'Rất mạnh' },
+            ];
+
+            if (value.length === 0) {
+                bar.style.width = '0%';
+                text.textContent = '';
+                return;
+            }
+
+            const level = levels[Math.min(strength - 1, 4)];
+            bar.style.width = level.width;
+            bar.className = `password-strength ${level.color}`;
+            text.textContent = level.label;
+        }
+    </script>
+</body>
+</html>
