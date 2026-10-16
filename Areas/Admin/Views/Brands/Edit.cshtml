@@ -1,0 +1,47 @@
+@model LaptopShop.Models.Brand
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Chỉnh sửa Hãng sản xuất";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Chỉnh Sửa Thương Hiệu</h3>
+                <span class="text-muted small">Cập nhật thông tin hãng #@Model.Id</span>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Name" class="form-label fw-bold">Tên Hãng / Thương hiệu <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control form-control-lg" required autofocus />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                        <div class="form-text text-muted">Thay đổi tên hãng sẽ tự động cập nhật trên toàn bộ sản phẩm thuộc hãng này.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-light px-4">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                            <i class="fa-solid fa-check me-1"></i>Cập Nhật
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

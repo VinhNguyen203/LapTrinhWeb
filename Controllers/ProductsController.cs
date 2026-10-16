@@ -195,5 +195,38 @@ namespace LaptopShop.Controllers
 
             return View(product);
         }
+
+        // ==========================================
+        // GỬI ĐÁNH GIÁ SẢN PHẨM (REVIEWS)
+        // ==========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddReview(int productId, int rating, string comment)
+        {
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            var userName = HttpContext.Session.GetString("UserName") ?? "Khách hàng";
+            var userId = HttpContext.Session.GetString("UserId");
+
+            var review = new Review
+            {
+                ProductId = productId,
+                UserId = userId,
+                UserName = userName,
+                Rating = Math.Clamp(rating, 1, 5),
+                Comment = comment?.Trim(),
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Reviews.Add(review);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Cảm ơn bạn đã gửi đánh giá cho sản phẩm!";
+            return RedirectToAction(nameof(Details), new { id = productId });
+        }
     }
 }
