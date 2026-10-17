@@ -1,13 +1,47 @@
 @model IEnumerable<LaptopShop.Models.Review>
 
 @{
-    ViewData["Title"] = "Quản lý Đánh giá";
+    ViewData["Title"] = "Đánh giá Khách hàng";
     var currentRating = ViewData["CurrentRating"] as int?;
+    var sessionUserId = Context.Session.GetString("UserId");
+    var sessionUserRole = Context.Session.GetString("UserRole");
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary mb-0">Quản lý Đánh giá Khách hàng</h2>
+<div class="container mt-4 mb-5">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (sessionUserRole == "Admin")
+    {
+        <div class="alert alert-info d-flex justify-content-between align-items-center shadow-sm rounded-3 mb-4">
+            <div>
+                <i class="fa-solid fa-user-shield me-2 fs-5 text-primary"></i>
+                <span>Bạn đang xem danh sách đánh giá công khai với tư cách <strong>Quản trị viên</strong>.</span>
+            </div>
+            <a href="/Admin/Reviews" class="btn btn-sm btn-primary fw-semibold">
+                <i class="fa-solid fa-gear me-1"></i>Vào trang Quản trị Đánh giá
+            </a>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="text-primary fw-bold mb-1"><i class="fa-solid fa-comments me-2"></i>Cảm nhận & Đánh giá từ Khách hàng</h2>
+            <p class="text-muted small mb-0">Tất cả nhận xét chân thực từ người dùng LaptopShop</p>
+        </div>
 
         <!-- THANH LỌC THEO SỐ SAO -->
         <div class="btn-group" role="group">
@@ -21,75 +55,87 @@
     </div>
 
     <!-- BẢNG HIỂN THỊ CÓ HỖ TRỢ SẮP XẾP TRÊN TIÊU ĐỀ -->
-    <table class="table table-bordered table-striped table-hover shadow-sm bg-white rounded">
-        <thead class="table-dark">
-            <tr>
-                <th>
-                    <a asp-action="Index" asp-route-sortOrder="@ViewData["IdSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
-                        Mã ĐG ↕
-                    </a>
-                </th>
-                <th>Sản phẩm</th>
-                <th>
-                    <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
-                        Khách hàng (Tên) ↕
-                    </a>
-                </th>
-                <th>
-                    <a asp-action="Index" asp-route-sortOrder="@ViewData["RatingSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
-                        Số Sao ↕
-                    </a>
-                </th>
-                <th>Nội dung bình luận</th>
-                <th>
-                    <a asp-action="Index" asp-route-sortOrder="@ViewData["DateSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
-                        Ngày đăng ↕
-                    </a>
-                </th>
-                <th>Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                foreach (var item in Model)
-                {
+    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle mb-0">
+                <thead class="table-dark">
                     <tr>
-                        <td class="fw-bold">@item.Id</td>
-                        <td class="fw-bold text-info">
-                            @(item.Product != null ? item.Product.Name : "Sản phẩm không xác định")
-                        </td>
-                        <td>@item.UserName</td>
-                        <td class="text-warning fs-5">
-                            @for (int i = 1; i <= 5; i++)
-                            {
-                                if (i <= (item.Rating ?? 5))
-                                {
-                                    <span>★</span>
-                                }
-                                else
-                                {
-
-                                    <span class="text-muted">☆</span>
-                                }
-                            }
-                        </td>
-                        <td>@item.Comment</td>
-                        <td>@(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")</td>
-                        <td>
-                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này không?');" style="display:inline;">
-                                <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
-                            </form>
-                        </td>
+                        <th style="width: 80px;">
+                            <a asp-action="Index" asp-route-sortOrder="@ViewData["IdSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
+                                Mã ĐG ↕
+                            </a>
+                        </th>
+                        <th>Sản phẩm</th>
+                        <th>
+                            <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
+                                Khách hàng ↕
+                            </a>
+                        </th>
+                        <th style="width: 130px;">
+                            <a asp-action="Index" asp-route-sortOrder="@ViewData["RatingSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
+                                Số Sao ↕
+                            </a>
+                        </th>
+                        <th>Nội dung bình luận</th>
+                        <th style="width: 150px;">
+                            <a asp-action="Index" asp-route-sortOrder="@ViewData["DateSortParm"]" asp-route-rating="@currentRating" class="text-white text-decoration-none">
+                                Ngày đăng ↕
+                            </a>
+                        </th>
                     </tr>
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="7" class="text-center text-muted py-4">Không tìm thấy đánh giá nào phù hợp.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-muted">#@item.Id</td>
+                                <td class="fw-bold">
+                                    @if (item.Product != null)
+                                    {
+                                        <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId" class="text-decoration-none text-primary">
+                                            @item.Product.Name
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sản phẩm không xác định</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="fw-semibold">@item.UserName</span>
+                                    @if (!string.IsNullOrEmpty(sessionUserId) && item.UserId == sessionUserId)
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border small ms-1">Bạn</span>
+                                    }
+                                </td>
+                                <td class="text-warning fs-6">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= (item.Rating ?? 5))
+                                        {
+                                            <span>★</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted opacity-50">☆</span>
+                                        }
+                                    }
+                                </td>
+                                <td>@item.Comment</td>
+                                <td class="small text-muted">@(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Không tìm thấy đánh giá nào phù hợp.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

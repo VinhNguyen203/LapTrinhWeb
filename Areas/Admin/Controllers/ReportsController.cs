@@ -1,4 +1,5 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
+using LaptopShop.Controllers;
 using LaptopShop.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ using System.Text;
 namespace LaptopShop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class ReportsController : Controller
+    public class ReportsController : AdminBaseController
     {
         private readonly AppDbContext _context;
 
@@ -17,23 +18,38 @@ namespace LaptopShop.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(DateTime? fromDate, DateTime? toDate, string status = "All")
         {
             var now = DateTime.Today;
-            ViewBag.FromDate = new DateTime(now.Year, now.Month, 1).ToString("yyyy-MM-dd");
-            ViewBag.ToDate = now.ToString("yyyy-MM-dd");
-            ViewBag.Status = "All";
-            return View();
+            var from = fromDate ?? new DateTime(now.Year, now.Month, 1);
+            var to = toDate ?? now;
+
+            ViewBag.FromDate = from.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = to.ToString("yyyy-MM-dd");
+            ViewBag.Status = status;
+
+            var (orders, errorMsg) = await GetFilteredOrdersAsync(from, to, status);
+            if (errorMsg != null)
+            {
+                TempData["Error"] = errorMsg;
+            }
+
+            // Thống kê nhanh theo kết quả lọc
+            ViewBag.TotalOrders = orders.Count;
+            ViewBag.CompletedOrders = orders.Count(o => o.Status == "Completed" || o.Status == "Đã giao");
+            ViewBag.TotalRevenue = orders.Where(o => o.Status == "Completed" || o.Status == "Đã giao").Sum(o => o.TotalAmount);
+
+            return View(orders);
         }
 
         [HttpGet]
-        public async Task<IActionResult> ExportCsv(DateTime? fromDate, DateTime? toDate, string status)
+        public async Task<IActionResult> ExportCsv(DateTime? fromDate, DateTime? toDate, string status = "All")
         {
             var (orders, errorMsg) = await GetFilteredOrdersAsync(fromDate, toDate, status);
             if (errorMsg != null)
             {
                 TempData["Error"] = errorMsg;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { fromDate = fromDate?.ToString("yyyy-MM-dd"), toDate = toDate?.ToString("yyyy-MM-dd"), status });
             }
 
             var sb = new StringBuilder();
@@ -52,13 +68,13 @@ namespace LaptopShop.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ExportExcel(DateTime? fromDate, DateTime? toDate, string status)
+        public async Task<IActionResult> ExportExcel(DateTime? fromDate, DateTime? toDate, string status = "All")
         {
             var (orders, errorMsg) = await GetFilteredOrdersAsync(fromDate, toDate, status);
             if (errorMsg != null)
             {
                 TempData["Error"] = errorMsg;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { fromDate = fromDate?.ToString("yyyy-MM-dd"), toDate = toDate?.ToString("yyyy-MM-dd"), status });
             }
 
             using var workbook = new XLWorkbook();
@@ -107,7 +123,7 @@ namespace LaptopShop.Areas.Admin.Controllers
             worksheet.Cell(row, 5).Style.Font.Bold = true;
             worksheet.Cell(row, 5).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-            var totalSum = orders.Where(o => o.Status == "Completed").Sum(o => o.TotalAmount);
+            var totalSum = orders.Where(o => o.Status == "Completed" || o.Status == "Đã giao").Sum(o => o.TotalAmount);
             worksheet.Cell(row, 6).Value = totalSum;
             worksheet.Cell(row, 6).Style.NumberFormat.Format = "#,##0";
             worksheet.Cell(row, 6).Style.Font.Bold = true;
@@ -133,18 +149,38 @@ namespace LaptopShop.Areas.Admin.Controllers
 
             if (fromDate.HasValue)
             {
-                query = query.Where(o => o.OrderDate.HasValue && o.OrderDate.Value.Date >= fromDate.Value.Date);
+                var fromDateStart = fromDate.Value.Date;
+                query = query.Where(o => o.OrderDate.HasValue && o.OrderDate.Value >= fromDateStart);
             }
 
             if (toDate.HasValue)
             {
-                var toDateMax = toDate.Value.Date.AddDays(1).AddSeconds(-1);
-                query = query.Where(o => o.OrderDate.HasValue && o.OrderDate.Value <= toDateMax);
+                var toDateNextDay = toDate.Value.Date.AddDays(1);
+                query = query.Where(o => o.OrderDate.HasValue && o.OrderDate.Value < toDateNextDay);
             }
 
             if (!string.IsNullOrEmpty(status) && status != "All")
             {
-                query = query.Where(o => o.Status == status);
+                if (status == "Completed")
+                {
+                    query = query.Where(o => o.Status == "Completed" || o.Status == "Đã giao");
+                }
+                else if (status == "Pending")
+                {
+                    query = query.Where(o => o.Status == "Pending" || o.Status == "Đang xử lý");
+                }
+                else if (status == "Cancelled")
+                {
+                    query = query.Where(o => o.Status == "Cancelled" || o.Status == "Đã hủy");
+                }
+                else if (status == "Processing")
+                {
+                    query = query.Where(o => o.Status == "Processing" || o.Status == "Đang giao");
+                }
+                else
+                {
+                    query = query.Where(o => o.Status == status);
+                }
             }
 
             var data = await query
@@ -153,7 +189,7 @@ namespace LaptopShop.Areas.Admin.Controllers
                 {
                     Id = o.Id,
                     KeyDate = o.OrderDate ?? DateTime.Now,
-                    CustomerName = o.CustomerName ?? "Khách lẻ",
+                    CustomerName = o.CustomerName ?? "Khách vãng lai",
                     PhoneNumber = o.PhoneNumber ?? "",
                     ShippingAddress = o.ShippingAddress ?? "",
                     TotalAmount = o.TotalAmount ?? 0,

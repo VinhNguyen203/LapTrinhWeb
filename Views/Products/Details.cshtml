@@ -289,35 +289,73 @@
                     <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold">@reviewCount nhận xét</span>
                 </div>
 
-                <!-- Form gửi đánh giá nhanh -->
-                <div class="p-3 rounded-4 mb-4" style="background: #f8fafc; border: 1.5px dashed #cbd5e1;">
-                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-pen-nib me-1 text-primary"></i>Viết nhận xét của bạn</h6>
-                    <form asp-action="AddReview" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="productId" value="@Model.Id" />
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-5">
-                                <label class="form-label small fw-bold text-muted">Đánh giá số sao:</label>
-                                <select name="rating" class="form-select form-select-sm" required>
-                                    <option value="5" selected>⭐⭐⭐⭐⭐ (5 sao - Tuyệt vời)</option>
-                                    <option value="4">⭐⭐⭐⭐ (4 sao - Rất tốt)</option>
-                                    <option value="3">⭐⭐⭐ (3 sao - Bình thường)</option>
-                                    <option value="2">⭐⭐ (2 sao - Tạm được)</option>
-                                    <option value="1">⭐ (1 sao - Kém)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-7">
-                                <label class="form-label small fw-bold text-muted">Cảm nhận của bạn:</label>
-                                <input type="text" name="comment" class="form-control form-control-sm" placeholder="Chia sẻ trải nghiệm sử dụng laptop này..." required />
+                <!-- Form gửi đánh giá nhanh (Phân quyền Admin vs Khách hàng) -->
+                @{
+                    var detailUserId = Context.Session.GetString("UserId");
+                    var detailUserRole = Context.Session.GetString("UserRole");
+                    var detailUserName = Context.Session.GetString("UserName");
+                }
+
+                @if (detailUserRole == "Admin")
+                {
+                    <div class="p-3 rounded-4 mb-4 bg-light border border-warning-subtle">
+                        <div class="d-flex align-items-center">
+                            <i class="fa-solid fa-user-shield text-warning fs-3 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">Bạn đang đăng nhập với quyền Quản trị viên (Admin)</h6>
+                                <p class="text-muted small mb-0">
+                                    Tài khoản Quản trị không gửi đánh giá tại trang mua hàng. Bạn có thể kiểm duyệt và quản lý toàn bộ nhận xét tại 
+                                    <a href="/Admin/Reviews" class="fw-bold text-primary text-decoration-none">Khu vực Quản trị Đánh giá &rarr;</a>
+                                </p>
                             </div>
                         </div>
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                                <i class="fa-solid fa-paper-plane me-1"></i>Gửi Đánh Giá
-                            </button>
+                    </div>
+                }
+                else if (string.IsNullOrEmpty(detailUserId))
+                {
+                    <div class="p-3 rounded-4 mb-4 text-center bg-light border">
+                        <i class="fa-solid fa-lock text-primary fs-3 mb-2"></i>
+                        <h6 class="fw-bold text-dark mb-1">Bạn muốn chia sẻ cảm nhận về laptop này?</h6>
+                        <p class="text-muted small mb-3">Vui lòng đăng nhập tài khoản Khách hàng để viết đánh giá và nhận xét.</p>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@($"/Products/Details/{Model.Id}")" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i>Đăng nhập để đánh giá
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-3 rounded-4 mb-4" style="background: #f8fafc; border: 1.5px dashed #cbd5e1;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-pen-nib me-1 text-primary"></i>Viết nhận xét của bạn</h6>
+                            <span class="badge bg-light text-dark border small"><i class="fa-solid fa-user me-1 text-primary"></i>@detailUserName</span>
                         </div>
-                    </form>
-                </div>
+                        <form asp-action="AddReview" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@Model.Id" />
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-5">
+                                    <label class="form-label small fw-bold text-muted">Đánh giá số sao:</label>
+                                    <select name="rating" class="form-select form-select-sm" required>
+                                        <option value="5" selected>⭐⭐⭐⭐⭐ (5 sao - Tuyệt vời)</option>
+                                        <option value="4">⭐⭐⭐⭐ (4 sao - Rất tốt)</option>
+                                        <option value="3">⭐⭐⭐ (3 sao - Bình thường)</option>
+                                        <option value="2">⭐⭐ (2 sao - Tạm được)</option>
+                                        <option value="1">⭐ (1 sao - Kém)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label small fw-bold text-muted">Cảm nhận của bạn:</label>
+                                    <input type="text" name="comment" class="form-control form-control-sm" placeholder="Chia sẻ trải nghiệm sử dụng laptop này..." required />
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                                    <i class="fa-solid fa-paper-plane me-1"></i>Gửi Đánh Giá
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                }
 
                 <!-- Danh sách bình luận -->
                 <div class="reviews-list" style="max-height: 320px; overflow-y: auto;">

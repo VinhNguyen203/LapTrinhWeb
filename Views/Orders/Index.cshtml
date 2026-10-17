@@ -1,20 +1,23 @@
-﻿@model IEnumerable<LaptopShop.Models.Order>
+@model IEnumerable<LaptopShop.Models.Order>
 
 @{
-    ViewData["Title"] = "Quản lý Đơn hàng";
+    ViewData["Title"] = "Đơn hàng của tôi";
     var currentFilter = ViewData["CurrentFilter"]?.ToString();
     var currentStatus = ViewData["CurrentStatus"]?.ToString();
 }
 
 <div class="container mt-4">
-    <h2 class="text-primary mb-4">Quản lý Đơn hàng</h2>
+    <div class="d-flex align-items-center mb-4">
+        <i class="fa-solid fa-box-archive fs-3 text-primary me-3"></i>
+        <h2 class="text-primary fw-bold mb-0">Đơn hàng của tôi</h2>
+    </div>
 
     <!-- THANH TÌM KIẾM VÀ LỌC TRẠNG THÁI GOM CHUNG TRONG 1 FORM -->
     <form asp-action="Index" method="get" class="row mb-4 align-items-center g-2">
         <!-- Ô tìm kiếm -->
         <div class="col-md-4">
             <div class="input-group">
-                <input type="text" name="searchString" value="@currentFilter" class="form-control" placeholder="Mã ĐH hoặc tên khách..." />
+                <input type="text" name="searchString" value="@currentFilter" class="form-control" placeholder="Tìm theo mã đơn hàng hoặc tên người nhận..." />
                 <!-- Giữ lại giá trị sắp xếp hiện tại nếu có -->
                 @if (Context.Request.Query.ContainsKey("sortOrder"))
                 {

@@ -1,13 +1,13 @@
 @model List<LaptopShop.Models.CartItemViewModel>
 
 @{
-    ViewData["Title"] = "Giỏ hàng";
+    ViewData["Title"] = "Giỏ hàng của tôi";
 }
 
 <div class="container py-4">
     <div class="d-flex align-items-center mb-4">
         <i class="fa-solid fa-cart-shopping fs-3 text-primary me-3"></i>
-        <h2 class="fw-bold mb-0">Giỏ Hàng Của Bạn</h2>
+        <h2 class="fw-bold mb-0">Giỏ hàng của tôi</h2>
     </div>
 
     @if (TempData["CartSuccess"] is string successMessage)
@@ -158,9 +158,35 @@
                         </span>
                     </div>
 
-                    <a asp-controller="Checkout" asp-action="Index" class="btn btn-gradient w-100 py-3 rounded-pill fw-bold fs-6 shadow">
-                        <i class="fa-solid fa-credit-card me-2"></i> Tiến Hành Đặt Hàng
-                    </a>
+                    @{
+                        var currentUserId = Context.Session.GetString("UserId");
+                        var currentUserRole = Context.Session.GetString("UserRole");
+                    }
+
+                    @if (currentUserRole == "Admin")
+                    {
+                        <div class="alert alert-warning py-2 mb-3 small border-0">
+                            <i class="fa-solid fa-shield-halved me-1 text-warning"></i> Bạn đang đăng nhập bằng quyền <strong>Quản trị viên</strong>. Tài khoản Admin không thực hiện đặt hàng.
+                        </div>
+                        <button class="btn btn-secondary w-100 py-3 rounded-pill fw-bold fs-6 opacity-75" disabled>
+                            <i class="fa-solid fa-ban me-2"></i> Admin không thể đặt hàng
+                        </button>
+                    }
+                    else if (string.IsNullOrEmpty(currentUserId))
+                    {
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Checkout" class="btn btn-warning w-100 py-3 rounded-pill fw-bold fs-6 shadow text-dark">
+                            <i class="fa-solid fa-right-to-bracket me-2"></i> Đăng nhập để Đặt Hàng
+                        </a>
+                        <small class="text-muted d-block text-center mt-2" style="font-size: 0.8rem;">
+                            Cần tài khoản thành viên để lưu lịch sử và theo dõi đơn hàng
+                        </small>
+                    }
+                    else
+                    {
+                        <a asp-controller="Checkout" asp-action="Index" class="btn btn-gradient w-100 py-3 rounded-pill fw-bold fs-6 shadow">
+                            <i class="fa-solid fa-credit-card me-2"></i> Tiến Hành Đặt Hàng
+                        </a>
+                    }
                 </div>
             </div>
         </div>

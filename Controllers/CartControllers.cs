@@ -24,6 +24,22 @@ namespace LaptopShop.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Add(int productId, int quantity = 1)
         {
+            var userRole = HttpContext.Session.GetString("UserRole");
+            if (userRole == "Admin")
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Tài khoản Quản trị viên (Admin) không thực hiện mua hàng. Vui lòng dùng tài khoản Khách hàng."
+                    });
+                }
+
+                TempData["CartError"] = "Tài khoản Quản trị viên không thể mua hàng. Vui lòng sử dụng tài khoản Khách hàng.";
+                return RedirectToAction("Index", "Cart");
+            }
+
             try
             {
                 _cartService.AddItem(productId, quantity);

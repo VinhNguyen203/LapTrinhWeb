@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using LaptopShop.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,13 +70,31 @@ namespace LaptopShop.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            var userRole = HttpContext.Session.GetString("UserRole");
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để thực hiện thao tác.";
+                return RedirectToAction("Login", "Account");
+            }
+
             var review = _context.Reviews.FirstOrDefault(r => r.Id == id);
             if (review != null)
             {
-                _context.Reviews.Remove(review);
-                _context.SaveChanges();
+                if (userRole == "Admin" || review.UserId == userId)
+                {
+                    _context.Reviews.Remove(review);
+                    _context.SaveChanges();
+                    TempData["SuccessMessage"] = "Đã xóa nhận xét thành công.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Bạn không có quyền xóa nhận xét của người khác.";
+                }
             }
             return RedirectToAction("Index");
         }

@@ -34,7 +34,6 @@ builder.Services.AddHttpContextAccessor();
 
 // Đăng ký MVC với Controllers và Views
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<CartService>();
 
 var app = builder.Build();
 

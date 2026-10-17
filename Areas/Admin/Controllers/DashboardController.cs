@@ -1,3 +1,4 @@
+using LaptopShop.Controllers;
 using LaptopShop.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace LaptopShop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class DashboardController : Controller
+    public class DashboardController : AdminBaseController
     {
         private readonly AppDbContext _context;
 
@@ -21,28 +22,33 @@ namespace LaptopShop.Areas.Admin.Controllers
             var now = DateTime.Now;
             var startOfMonth = new DateTime(now.Year, now.Month, 1);
 
-            // 1. Thống kê 4 thẻ số liệu an toàn
+            // 1. Thống kê số liệu an toàn (hỗ trợ cả tiếng Anh và tiếng Việt: Completed / Đã giao, Pending / Đang xử lý)
             var orders = await _context.Orders.ToListAsync();
 
             var monthlyRevenue = orders
-                .Where(o => o.Status == "Completed" && o.OrderDate.HasValue && o.OrderDate.Value >= startOfMonth)
+                .Where(o => (o.Status == "Completed" || o.Status == "Đã giao") && o.OrderDate.HasValue && o.OrderDate.Value >= startOfMonth)
+                .Sum(o => o.TotalAmount ?? 0);
+
+            var totalAllTimeRevenue = orders
+                .Where(o => o.Status == "Completed" || o.Status == "Đã giao")
                 .Sum(o => o.TotalAmount ?? 0);
 
             var pendingOrdersCount = orders
-                .Count(o => o.Status == "Pending");
+                .Count(o => o.Status == "Pending" || o.Status == "Đang xử lý");
 
-            // Số sản phẩm đang kinh doanh (đếm tổng số sản phẩm có trong bảng Products)
+            // Số sản phẩm và số cảnh báo kho
             var activeProductsCount = await _context.Products.CountAsync();
+            var lowStockCount = await _context.Products.CountAsync(p => p.StockQuantity < 5);
 
             var users = await _context.Users.ToListAsync();
             var newCustomersCount = users
                 .Count(u => u.Role == "Customer" && u.CreatedAt >= startOfMonth);
 
-            // - Top 5 sản phẩm bán chạy nhất
+            // Top 5 sản phẩm bán chạy nhất
             var orderDetails = await _context.OrderDetails
                 .Include(od => od.Product)
                 .Include(od => od.Order)
-                .Where(od => od.Order != null && od.Order.Status == "Completed" && od.Product != null)
+                .Where(od => od.Order != null && (od.Order.Status == "Completed" || od.Order.Status == "Đã giao") && od.Product != null)
                 .ToListAsync();
 
             var topSellingProducts = orderDetails
@@ -58,9 +64,10 @@ namespace LaptopShop.Areas.Admin.Controllers
                 .ToList();
 
             ViewBag.MonthlyRevenue = monthlyRevenue;
+            ViewBag.TotalAllTimeRevenue = totalAllTimeRevenue;
             ViewBag.PendingOrdersCount = pendingOrdersCount;
-            ViewBag.TotalRevenue = monthlyRevenue;
             ViewBag.ActiveProductsCount = activeProductsCount;
+            ViewBag.LowStockCount = lowStockCount;
             ViewBag.NewCustomersCount = newCustomersCount;
             ViewBag.TopSellingProducts = topSellingProducts;
 
@@ -78,7 +85,7 @@ namespace LaptopShop.Areas.Admin.Controllers
             var resultValues = new List<decimal>();
             var today = DateTime.Today;
             var orders = await _context.Orders
-                .Where(o => o.Status == "Completed" && o.OrderDate.HasValue)
+                .Where(o => (o.Status == "Completed" || o.Status == "Đã giao") && o.OrderDate.HasValue)
                 .ToListAsync();
 
             if (range == "12m")
@@ -123,7 +130,7 @@ namespace LaptopShop.Areas.Admin.Controllers
             var orderDetails = await _context.OrderDetails
                 .Include(od => od.Product)
                 .Include(od => od.Order)
-                .Where(od => od.Order != null && od.Order.Status == "Completed" && od.Product != null)
+                .Where(od => od.Order != null && (od.Order.Status == "Completed" || od.Order.Status == "Đã giao") && od.Product != null)
                 .ToListAsync();
 
             var labels = new List<string>();

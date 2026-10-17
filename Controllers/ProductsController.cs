@@ -203,6 +203,23 @@ namespace LaptopShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddReview(int productId, int rating, string comment)
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            var userRole = HttpContext.Session.GetString("UserRole");
+
+            // 1. Kiểm tra đăng nhập
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập tài khoản Khách hàng để viết đánh giá cho sản phẩm.";
+                return RedirectToAction("Login", "Account", new { returnUrl = $"/Products/Details/{productId}" });
+            }
+
+            // 2. Phân quyền: Chặn Quản trị viên (Admin) gửi đánh giá giả mạo khách hàng
+            if (userRole == "Admin")
+            {
+                TempData["ErrorMessage"] = "Tài khoản Quản trị viên không được phép gửi đánh giá. Vui lòng quản lý đánh giá tại Khu vực Quản trị.";
+                return RedirectToAction(nameof(Details), new { id = productId });
+            }
+
             var product = await _context.Products.FindAsync(productId);
             if (product == null)
             {
@@ -210,7 +227,6 @@ namespace LaptopShop.Controllers
             }
 
             var userName = HttpContext.Session.GetString("UserName") ?? "Khách hàng";
-            var userId = HttpContext.Session.GetString("UserId");
 
             var review = new Review
             {
