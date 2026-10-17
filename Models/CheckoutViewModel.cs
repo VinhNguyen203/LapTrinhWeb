@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace LaptopShop.Models
 {
@@ -22,5 +22,12 @@ namespace LaptopShop.Models
         "^(COD|QR)$",
          ErrorMessage = "Phương thức thanh toán không hợp lệ.")]
         public string PaymentMethod { get; set; } = "COD";
+
+        public string? CouponCode { get; set; }
+
+        public decimal DiscountAmount { get; set; } = 0;
+
+        [StringLength(500)]
+        public string? OrderNotes { get; set; }
     }
 }

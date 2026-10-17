@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using LaptopShop.Models;
 using Microsoft.AspNetCore.Http;
 
@@ -91,6 +91,34 @@ namespace LaptopShop.Services
 
             cart.Remove(existingItem);
             SaveCart(cart);
+        }
+
+        public void UpdateItem(int productId, int quantity)
+        {
+            if (quantity <= 0)
+            {
+                RemoveItem(productId);
+                return;
+            }
+
+            var product = _context.Products.Find(productId);
+            if (product == null)
+            {
+                throw new InvalidOperationException("Sản phẩm không tồn tại.");
+            }
+
+            if (quantity > product.StockQuantity)
+            {
+                throw new InvalidOperationException($"Chỉ còn {product.StockQuantity} sản phẩm trong kho.");
+            }
+
+            var cart = GetCart();
+            var existingItem = cart.FirstOrDefault(item => item.ProductId == productId);
+            if (existingItem != null)
+            {
+                existingItem.Quantity = quantity;
+                SaveCart(cart);
+            }
         }
 
         public void DecreaseItem(int productId)

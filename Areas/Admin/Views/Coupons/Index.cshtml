@@ -114,7 +114,7 @@
                                 </td>
                                 <td>
                                     <span class="fw-bold text-danger">
-                                        @if (coupon.DiscountType == "Percent")
+                                        @if (coupon.DiscountType == "Percent" || coupon.DiscountType == "Percentage")
                                         {
                                             <span>-@coupon.DiscountValue.ToString("0")%</span>
                                         }
