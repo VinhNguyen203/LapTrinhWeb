@@ -41,6 +41,9 @@ namespace LaptopShop.Models
         /// <summary>Bảng mã giảm giá & khuyến mãi</summary>
         public DbSet<Coupon> Coupons { get; set; }
 
+        /// <summary>Bảng giỏ hàng của khách hàng</summary>
+        public DbSet<CartItem> CartItems { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
