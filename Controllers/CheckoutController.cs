@@ -23,13 +23,47 @@ namespace LaptopShop.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            var userRole = HttpContext.Session.GetString("UserRole");
+
+            // 1. Bắt buộc đăng nhập trước khi thanh toán
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["CartError"] = "Vui lòng đăng nhập tài khoản Khách hàng để tiến hành thanh toán.";
+                return RedirectToAction("Login", "Account", new { returnUrl = "/Checkout" });
+            }
+
+            // 2. Phân quyền: Chặn tài khoản Quản trị viên (Admin) đặt hàng
+            if (userRole == "Admin")
+            {
+                TempData["CartError"] = "Tài khoản Quản trị viên (Admin) không được phép đặt hàng. Vui lòng đăng nhập tài khoản Khách hàng.";
+                return RedirectToAction("Index", "Cart");
+            }
+
             try
             {
                 _cartService.GetCheckoutItems();
 
-                return View(new CheckoutViewModel());
+                // Tự động điền thông tin sẵn có của khách hàng nếu có trong CSDL
+                var model = new CheckoutViewModel();
+                if (int.TryParse(userId, out int parsedUserId))
+                {
+                    var user = await _context.Users.FindAsync(parsedUserId);
+                    if (user != null)
+                    {
+                        model.CustomerName = user.FullName;
+                        model.PhoneNumber = user.PhoneNumber ?? string.Empty;
+                        model.ShippingAddress = user.Address ?? string.Empty;
+                    }
+                }
+                else
+                {
+                    model.CustomerName = HttpContext.Session.GetString("UserName") ?? string.Empty;
+                }
+
+                return View(model);
             }
             catch (InvalidOperationException ex)
             {
@@ -43,6 +77,23 @@ namespace LaptopShop.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Index(CheckoutViewModel input)
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            var userRole = HttpContext.Session.GetString("UserRole");
+
+            // 1. Bắt buộc đăng nhập
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["CartError"] = "Vui lòng đăng nhập tài khoản Khách hàng để thanh toán.";
+                return RedirectToAction("Login", "Account", new { returnUrl = "/Checkout" });
+            }
+
+            // 2. Chặn Admin đặt hàng
+            if (userRole == "Admin")
+            {
+                TempData["CartError"] = "Tài khoản Quản trị viên (Admin) không được phép đặt hàng.";
+                return RedirectToAction("Index", "Cart");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(input);
@@ -50,7 +101,6 @@ namespace LaptopShop.Controllers
 
             try
             {
-                string? userId = HttpContext.Session.GetString("UserId");
                 int orderId = _checkoutService.PlaceOrder(input, userId);
 
                 _cartService.ClearCart();

@@ -62,16 +62,30 @@
         </div>
     </div>
 
+    <!-- Cảnh báo hàng tồn kho thấp nếu có -->
+    @if (ViewBag.LowStockCount != null && (int)ViewBag.LowStockCount > 0)
+    {
+        <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center justify-content-between shadow-sm mb-4 border-warning" role="alert">
+            <div>
+                <i class="fas fa-triangle-exclamation fa-lg me-2 text-warning"></i>
+                <strong>Cảnh báo tồn kho:</strong> Phát hiện <strong>@(ViewBag.LowStockCount)</strong> mẫu laptop có tồn kho thấp (&lt; 5 máy).
+            </div>
+            <a asp-area="Admin" asp-controller="Inventory" asp-action="Index" class="btn btn-warning btn-sm fw-bold shadow-sm">
+                <i class="fas fa-boxes-stacked me-1"></i> Kiểm tra &amp; Nhập kho ngay
+            </a>
+        </div>
+    }
+
     <!-- Khu vực biểu đồ và Top 5 sản phẩm -->
     <div class="row">
         <!-- Biểu đồ doanh thu -->
         <div class="col-xl-8">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom">
                     <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line me-1"></i> Thống Kê Doanh Thu Theo Thời Gian</h6>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary active" onclick="loadRevenueChart('7d')">7 Ngày gần nhất</button>
-                        <button type="button" class="btn btn-outline-primary" onclick="loadRevenueChart('12m')">12 Tháng</button>
+                        <button type="button" id="btn7d" class="btn btn-outline-primary active" onclick="loadRevenueChart('7d')">7 Ngày gần nhất</button>
+                        <button type="button" id="btn12m" class="btn btn-outline-primary" onclick="loadRevenueChart('12m')">12 Tháng</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -82,8 +96,8 @@
 
         <!-- Top 5 sản phẩm bán chạy -->
         <div class="col-xl-4">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-white py-3">
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
                     <h6 class="m-0 font-weight-bold text-success"><i class="fas fa-fire me-1"></i> Top 5 Sản Phẩm Bán Chạy</h6>
                 </div>
                 <div class="card-body p-0">
@@ -121,20 +135,78 @@
             </div>
         </div>
     </div>
+
+    <!-- Hàng 2: Biểu đồ cơ cấu thị phần hãng & Thông tin thống kê nhanh -->
+    <div class="row">
+        <!-- Biểu đồ thương hiệu (Doughnut Chart) -->
+        <div class="col-xl-6">
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <h6 class="m-0 font-weight-bold text-info"><i class="fas fa-chart-pie me-1"></i> Thị Phần Theo Thương Hiệu Laptop</h6>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" id="btnShareRev" class="btn btn-outline-info active" onclick="loadBrandChart('revenue')">Theo Doanh thu</button>
+                        <button type="button" id="btnShareQty" class="btn btn-outline-info" onclick="loadBrandChart('quantity')">Theo Số lượng</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div style="max-height: 280px; position: relative;">
+                        <canvas id="brandChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thẻ tóm tắt nhanh và liên kết tiện ích -->
+        <div class="col-xl-6">
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-bolt me-1 text-warning"></i> Thao Tác Nhanh & Báo Cáo</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="p-3 border rounded bg-light text-center h-100">
+                                <div class="text-muted small fw-bold mb-1">TỔNG DOANH THU TOÀN THỜI GIAN</div>
+                                <div class="h5 fw-bold text-primary mb-2">@string.Format("{0:N0}", ViewBag.TotalAllTimeRevenue ?? 0) đ</div>
+                                <a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-file-excel me-1"></i> Xuất báo cáo
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 border rounded bg-light text-center h-100">
+                                <div class="text-muted small fw-bold mb-1">CẢNH BÁO TỒN KHO</div>
+                                <div class="h5 fw-bold @((ViewBag.LowStockCount ?? 0) > 0 ? "text-danger" : "text-success") mb-2">
+                                    @(ViewBag.LowStockCount ?? 0) mẫu cần nhập
+                                </div>
+                                <a asp-area="Admin" asp-controller="Inventory" asp-action="Index" class="btn btn-outline-warning btn-sm text-dark">
+                                    <i class="fas fa-boxes-stacked me-1"></i> Xem kho chi tiết
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0 py-2 small">
+                        <i class="fas fa-info-circle me-1"></i> Số liệu và biểu đồ được cập nhật tự động từ các giao dịch đơn hàng thực tế trong cơ sở dữ liệu.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-    <!-- Thêm thư viện Chart.js nếu layout chưa có -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let revenueChartInstance = null;
+        let brandChartInstance = null;
 
         function loadRevenueChart(range) {
+            document.getElementById('btn7d').classList.toggle('active', range === '7d');
+            document.getElementById('btn12m').classList.toggle('active', range === '12m');
+
             fetch('/Admin/Dashboard/GetRevenueData?range=' + range)
                 .then(response => response.json())
                 .then(data => {
                     const ctx = document.getElementById('revenueChart').getContext('2d');
-
                     if (revenueChartInstance) {
                         revenueChartInstance.destroy();
                     }
@@ -146,15 +218,18 @@
                             datasets: [{
                                 label: 'Doanh thu (VNĐ)',
                                 data: data.data,
-                                backgroundColor: 'rgba(13, 110, 253, 0.05)',
+                                backgroundColor: 'rgba(13, 110, 253, 0.08)',
                                 borderColor: 'rgba(13, 110, 253, 1)',
-                                borderWidth: 2,
+                                borderWidth: 2.5,
                                 fill: true,
-                                tension: 0.3
+                                tension: 0.35,
+                                pointBackgroundColor: 'rgba(13, 110, 253, 1)',
+                                pointRadius: 4
                             }]
                         },
                         options: {
                             responsive: true,
+                            maintainAspectRatio: true,
                             scales: {
                                 y: {
                                     beginAtZero: true,
@@ -167,12 +242,54 @@
                             }
                         }
                     });
-                });
+                })
+                .catch(err => console.error("Lỗi tải biểu đồ doanh thu:", err));
         }
 
-        // Tự động load biểu đồ 7 ngày khi mở trang
+        function loadBrandChart(type) {
+            document.getElementById('btnShareRev').classList.toggle('active', type === 'revenue');
+            document.getElementById('btnShareQty').classList.toggle('active', type === 'quantity');
+
+            fetch('/Admin/Dashboard/GetBrandShareData?type=' + type)
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('brandChart').getContext('2d');
+                    if (brandChartInstance) {
+                        brandChartInstance.destroy();
+                    }
+
+                    const colors = [
+                        '#0d6efd', '#6610f2', '#6f42c1', '#d63384',
+                        '#dc3545', '#fd7e14', '#ffc107', '#198754',
+                        '#20c997', '#0dcaf0'
+                    ];
+
+                    brandChartInstance = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                data: data.data,
+                                backgroundColor: colors.slice(0, data.labels.length)
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right'
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(err => console.error("Lỗi tải biểu đồ thương hiệu:", err));
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             loadRevenueChart('7d');
+            loadBrandChart('revenue');
         });
     </script>
 }

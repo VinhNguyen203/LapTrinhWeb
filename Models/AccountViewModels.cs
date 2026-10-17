@@ -112,4 +112,42 @@ namespace LaptopShop.Models
         [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không trùng khớp")]
         public string ConfirmNewPassword { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// ViewModel cho Admin tạo người dùng mới
+    /// </summary>
+    public class CreateUserViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập họ và tên")]
+        [Display(Name = "Họ và tên")]
+        [StringLength(100)]
+        public string FullName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng nhập Email")]
+        [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
+        [Display(Name = "Địa chỉ Email")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Mật khẩu")]
+        [StringLength(100, ErrorMessage = "Mật khẩu phải có ít nhất {2} ký tự", MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        [Display(Name = "Số điện thoại")]
+        [StringLength(20)]
+        public string? PhoneNumber { get; set; }
+
+        [Display(Name = "Địa chỉ")]
+        [StringLength(500)]
+        public string? Address { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng chọn vai trò")]
+        [Display(Name = "Vai trò")]
+        public string Role { get; set; } = "Customer";
+
+        [Display(Name = "Kích hoạt")]
+        public bool IsActive { get; set; } = true;
+    }
 }

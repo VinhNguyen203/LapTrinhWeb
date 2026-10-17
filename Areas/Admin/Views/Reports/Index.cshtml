@@ -1,54 +1,332 @@
-﻿@{
+@model IEnumerable<LaptopShop.Areas.Admin.Controllers.OrderExportModel>
+
+@{
     ViewData["Title"] = "Báo cáo Doanh thu & Đơn hàng";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="container-fluid px-4">
-    <h1 class="mt-4">Báo cáo & Thống kê</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-        <li class="breadcrumb-item active">Báo cáo</li>
-    </ol>
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-file-excel me-2 text-success"></i>Báo Cáo Doanh Thu &amp; Đơn Hàng</h1>
+            <p class="text-muted small mb-0">Lọc thống kê đơn hàng, tính toán doanh thu và xuất file báo cáo Excel (ClosedXML) hoặc CSV (UTF-8).</p>
+        </div>
+    </div>
 
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["Error"]
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> @TempData["Error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
+    <!-- 3 Thẻ thống kê kết quả lọc -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-primary border-4 bg-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small text-uppercase fw-bold">Tổng Đơn Hàng Lọc Được</div>
+                            <div class="h4 mb-0 fw-bold text-primary">@(ViewBag.TotalOrders ?? 0) đơn</div>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-3 text-primary">
+                            <i class="fas fa-shopping-bag fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-success border-4 bg-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small text-uppercase fw-bold">Đơn Giao Thành Công</div>
+                            <div class="h4 mb-0 fw-bold text-success">@(ViewBag.CompletedOrders ?? 0) đơn</div>
+                        </div>
+                        <div class="bg-success bg-opacity-10 rounded-circle p-3 text-success">
+                            <i class="fas fa-check-double fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-warning border-4 bg-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small text-uppercase fw-bold">Doanh Thu Thành Công</div>
+                            <div class="h4 mb-0 fw-bold text-success">@string.Format("{0:N0}", ViewBag.TotalRevenue ?? 0) VNĐ</div>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-3 text-warning">
+                            <i class="fas fa-coins fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bộ lọc báo cáo -->
     <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header bg-primary text-white py-3">
-            <h6 class="m-0 font-weight-bold"><i class="fas fa-filter me-1"></i> Bộ lọc Xuất Báo Cáo Doanh Thu & Đơn Hàng</h6>
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter me-1"></i> Thiết lập bộ lọc thời gian &amp; trạng thái</h6>
         </div>
         <div class="card-body bg-light">
-            <form method="get" class="row g-3">
+            <form method="get" asp-area="Admin" asp-controller="Reports" asp-action="Index" class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label for="fromDate" class="form-label fw-bold">Từ ngày:</label>
+                    <label for="fromDate" class="form-label fw-bold small">Từ ngày:</label>
                     <input type="date" id="fromDate" name="fromDate" value="@ViewBag.FromDate" class="form-control" />
                 </div>
                 <div class="col-md-3">
-                    <label for="toDate" class="form-label fw-bold">Đến ngày:</label>
+                    <label for="toDate" class="form-label fw-bold small">Đến ngày:</label>
                     <input type="date" id="toDate" name="toDate" value="@ViewBag.ToDate" class="form-control" />
                 </div>
-                <div class="col-md-3">
-                    <label for="status" class="form-label fw-bold">Trạng thái đơn hàng:</label>
+                <div class="col-md-2">
+                    <label for="status" class="form-label fw-bold small">Trạng thái:</label>
                     <select id="status" name="status" class="form-select">
-                        <option value="All" selected='@(ViewBag.Status == "All")'>Tất cả trạng thái</option>
-                        <option value="Pending" selected='@(ViewBag.Status == "Pending")'>Pending (Chờ xử lý)</option>
-                        <option value="Completed" selected='@(ViewBag.Status == "Completed")'>Completed (Hoàn thành)</option>
+                        <option value="All" selected='@(ViewBag.Status == "All")'>-- Tất cả --</option>
+                        <option value="Completed" selected='@(ViewBag.Status == "Completed")'>Hoàn thành / Đã giao</option>
+                        <option value="Pending" selected='@(ViewBag.Status == "Pending")'>Chờ xử lý / Đang xử lý</option>
+                        <option value="Processing" selected='@(ViewBag.Status == "Processing")'>Đang giao hàng</option>
+                        <option value="Cancelled" selected='@(ViewBag.Status == "Cancelled")'>Đã hủy</option>
                     </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-end gap-2">
-                    <button type="submit" formaction="@Url.Action("ExportCsv", "Reports", new { area = "Admin" })" class="btn btn-success flex-grow-1 shadow-sm">
-                        <i class="fas fa-file-csv me-1"></i> Xuất CSV
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" formaction="@Url.Action("Index", "Reports", new { area = "Admin" })" class="btn btn-primary flex-grow-1 shadow-sm" title="Lọc và cập nhật dữ liệu">
+                        <i class="fas fa-filter me-1"></i> Lọc dữ liệu
                     </button>
-                    <button type="submit" formaction="@Url.Action("ExportExcel", "Reports", new { area = "Admin" })" class="btn btn-info text-white flex-grow-1 shadow-sm">
-                        <i class="fas fa-file-excel me-1"></i> Xuất Excel
+                    <button type="button" class="btn btn-info text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#reportPreviewModal" title="Xem trước trang in báo cáo">
+                        <i class="fas fa-eye me-1"></i> Xem trước
                     </button>
+                    <button type="submit" formaction="@Url.Action("ExportExcel", "Reports", new { area = "Admin" })" class="btn btn-success shadow-sm" title="Xuất file Excel (.xlsx)">
+                        <i class="fas fa-file-excel me-1"></i> Excel
+                    </button>
+                    <button type="submit" formaction="@Url.Action("ExportCsv", "Reports", new { area = "Admin" })" class="btn btn-secondary shadow-sm" title="Xuất file CSV (.csv)">
+                        <i class="fas fa-file-csv me-1"></i> CSV
+                    </button>
+                    <a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="btn btn-outline-secondary shadow-sm" title="Đặt lại bộ lọc"><i class="fas fa-redo"></i></a>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Bảng xem trước dữ liệu báo cáo -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-table me-1"></i> Dữ liệu chi tiết đơn hàng báo cáo</h6>
+            <span class="badge bg-secondary">@(Model?.Count() ?? 0) bản ghi</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase fs-7">
+                        <tr>
+                            <th class="ps-4">Mã Đơn</th>
+                            <th>Ngày Đặt</th>
+                            <th>Khách Hàng</th>
+                            <th>Số Điện Thoại</th>
+                            <th>Địa Chỉ Giao Hàng</th>
+                            <th class="text-end">Tổng Tiền</th>
+                            <th class="text-center pe-4">Trạng Thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var o in Model)
+                            {
+                                string badgeClass = (o.Status == "Completed" || o.Status == "Đã giao") ? "bg-success" :
+                                                    (o.Status == "Pending" || o.Status == "Đang xử lý") ? "bg-warning text-dark" :
+                                                    (o.Status == "Cancelled" || o.Status == "Đã hủy") ? "bg-danger" : "bg-info";
+
+                                <tr>
+                                    <td class="ps-4 fw-bold text-primary">#@o.Id</td>
+                                    <td>@o.KeyDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="fw-semibold">@o.CustomerName</td>
+                                    <td>@o.PhoneNumber</td>
+                                    <td class="text-truncate" style="max-width: 200px;" title="@o.ShippingAddress">@o.ShippingAddress</td>
+                                    <td class="text-end fw-bold text-success">@o.TotalAmount.ToString("N0") đ</td>
+                                    <td class="text-center pe-4">
+                                        <span class="badge @badgeClass">@o.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">Không tìm thấy đơn hàng nào trong khoảng thời gian đã chọn.</td>
+                            </tr>
+                        }
+                    </tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="5" class="text-end ps-4">Tổng doanh thu đơn hoàn thành:</td>
+                                <td class="text-end text-success fs-6">@string.Format("{0:N0}", ViewBag.TotalRevenue ?? 0) đ</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    }
+                </table>
+            </div>
+        </div>
+    <!-- ================= MODAL XEM TRƯỚC BÁO CÁO (REPORT PREVIEW) ================= -->
+    <div class="modal fade" id="reportPreviewModal" tabindex="-1" aria-labelledby="reportPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title" id="reportPreviewModalLabel">
+                        <i class="fas fa-file-invoice me-2"></i>Xem Trước Bản In Báo Cáo
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-white" id="printableReport">
+                    <!-- Tiêu đề văn bản báo cáo chuyên nghiệp -->
+                    <div class="text-center pb-3 border-bottom mb-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="text-start">
+                                <h6 class="fw-bold mb-0 text-uppercase">CÔNG TY CỔ PHẦN CÔNG NGHỆ LAPTOPSHOP</h6>
+                                <small class="text-muted">Địa chỉ: 123 Cầu Giấy, Q. Cầu Giấy, Hà Nội | Hotline: 1900 6868</small>
+                            </div>
+                            <div class="text-end text-muted small">
+                                <div>Mẫu số: 01-BCTH</div>
+                                <div>Ngày lập: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                        </div>
+                        <h4 class="fw-bold text-uppercase text-dark mt-3 mb-1">BÁO CÁO TỔNG HỢP DOANH THU &amp; ĐƠN HÀNG</h4>
+                        <p class="text-muted mb-0 fst-italic small">
+                            (Từ ngày: @(string.IsNullOrEmpty(ViewBag.FromDate) ? "Đầu tháng" : ViewBag.FromDate) 
+                            đến ngày: @(string.IsNullOrEmpty(ViewBag.ToDate) ? "Hôm nay" : ViewBag.ToDate) 
+                            - Trạng thái lọc: @ViewBag.Status)
+                        </p>
+                    </div>
+
+                    <!-- Khung tóm tắt số liệu kinh doanh -->
+                    <div class="row g-3 mb-4 text-center">
+                        <div class="col-md-4">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="text-muted text-uppercase fw-bold">Tổng số đơn hàng</small>
+                                <h5 class="fw-bold text-primary mb-0 mt-1">@(ViewBag.TotalOrders ?? 0) đơn</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="text-muted text-uppercase fw-bold">Đơn giao thành công</small>
+                                <h5 class="fw-bold text-success mb-0 mt-1">@(ViewBag.CompletedOrders ?? 0) đơn</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="text-muted text-uppercase fw-bold">Doanh thu ghi nhận</small>
+                                <h5 class="fw-bold text-danger mb-0 mt-1">@string.Format("{0:N0}", ViewBag.TotalRevenue ?? 0) VNĐ</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng dữ liệu in -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered table-sm align-middle fs-7 mb-0">
+                            <thead class="table-light text-center">
+                                <tr>
+                                    <th style="width: 50px;">STT</th>
+                                    <th>Mã Đơn</th>
+                                    <th>Thời Gian Đặt</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Số Điện Thoại</th>
+                                    <th>Địa Chỉ Nhận Hàng</th>
+                                    <th class="text-end">Tổng Tiền</th>
+                                    <th>Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    int stt = 1;
+                                    foreach (var o in Model)
+                                    {
+                                        <tr>
+                                            <td class="text-center">@(stt++)</td>
+                                            <td class="text-center fw-bold text-primary">#@o.Id</td>
+                                            <td class="text-center">@o.KeyDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td class="fw-semibold">@o.CustomerName</td>
+                                            <td>@o.PhoneNumber</td>
+                                            <td class="text-truncate" style="max-width: 220px;" title="@o.ShippingAddress">@o.ShippingAddress</td>
+                                            <td class="text-end fw-bold">@o.TotalAmount.ToString("N0") đ</td>
+                                            <td class="text-center">@o.Status</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="8" class="text-center py-3 text-muted">Không có dữ liệu trong kỳ báo cáo này.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                <tfoot class="fw-bold table-light">
+                                    <tr>
+                                        <td colspan="6" class="text-end">TỔNG CỘNG DOANH THU HOÀN THÀNH:</td>
+                                        <td class="text-end text-danger fs-6">@string.Format("{0:N0}", ViewBag.TotalRevenue ?? 0) đ</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            }
+                        </table>
+                    </div>
+
+                    <!-- Phần chữ ký xác nhận báo cáo -->
+                    <div class="row text-center mt-5 pt-3">
+                        <div class="col-6">
+                            <div class="fw-bold">NGƯỜI LẬP BIỂU</div>
+                            <div class="text-muted small fst-italic">(Ký, ghi rõ họ tên)</div>
+                            <div style="height: 70px;"></div>
+                            <div class="fw-semibold">@Context.Session.GetString("UserName")</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fw-bold">GIÁM ĐỐC / TRƯỞNG BỘ PHẬN</div>
+                            <div class="text-muted small fst-italic">(Ký, đóng dấu xác nhận)</div>
+                            <div style="height: 70px;"></div>
+                            <div class="fw-semibold">Ban Giám Đốc LaptopShop</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" onclick="printReport()"><i class="fas fa-print me-1"></i> In Báo Cáo</button>
+                    <a href="@Url.Action("ExportExcel", "Reports", new { area = "Admin", fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, status = ViewBag.Status })" class="btn btn-success">
+                        <i class="fas fa-file-excel me-1"></i> Tải File Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        function printReport() {
+            var printContents = document.getElementById('printableReport').innerHTML;
+            var printWindow = window.open('', '', 'height=700,width=900');
+            printWindow.document.write('<html><head><title>Báo cáo LaptopShop</title>');
+            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">');
+            printWindow.document.write('<style>body { font-family: "Segoe UI", Arial, sans-serif; padding: 25px; color: #000; } table { font-size: 13px; } </style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(printContents);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(function () {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        }
+    </script>
+}
