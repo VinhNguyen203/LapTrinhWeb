@@ -63,6 +63,65 @@ namespace LaptopShop.Areas.Admin.Controllers
         }
 
         // ===========================
+        // THÊM MỚI NGƯỜI DÙNG
+        // ===========================
+
+        /// <summary>
+        /// GET: Form thêm mới người dùng
+        /// </summary>
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View(new CreateUserViewModel());
+        }
+
+        /// <summary>
+        /// POST: Xử lý thêm mới người dùng
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CreateUserViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var emailExists = await _context.Users
+                .AnyAsync(u => u.Email.ToLower() == model.Email.Trim().ToLower());
+
+            if (emailExists)
+            {
+                ModelState.AddModelError("Email", "Địa chỉ Email này đã tồn tại trong hệ thống.");
+                return View(model);
+            }
+
+            if (model.Role != "Admin" && model.Role != "Customer")
+            {
+                ModelState.AddModelError("Role", "Vai trò không hợp lệ.");
+                return View(model);
+            }
+
+            var newUser = new AppUser
+            {
+                FullName = model.FullName.Trim(),
+                Email = model.Email.Trim().ToLower(),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                PhoneNumber = model.PhoneNumber?.Trim(),
+                Address = model.Address?.Trim(),
+                Role = model.Role,
+                IsActive = model.IsActive,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Đã tạo mới tài khoản [{newUser.FullName}] với vai trò [{newUser.Role}] thành công.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // ===========================
         // CHI TIẾT NGƯỜI DÙNG
         // ===========================
 
