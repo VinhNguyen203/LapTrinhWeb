@@ -44,7 +44,9 @@ namespace LaptopShop.Controllers
 
             try
             {
-                _cartService.GetCheckoutItems();
+                var checkoutItems = _cartService.GetCheckoutItems();
+                ViewBag.CartItems = checkoutItems;
+                ViewBag.Subtotal = checkoutItems.Sum(item => item.TotalPrice);
 
                 // Tự động điền thông tin sẵn có của khách hàng nếu có trong CSDL
                 var model = new CheckoutViewModel();
@@ -94,6 +96,10 @@ namespace LaptopShop.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
+            var items = _cartService.GetCartDetails();
+            ViewBag.CartItems = items;
+            ViewBag.Subtotal = items.Sum(item => item.TotalPrice);
+
             if (!ModelState.IsValid)
             {
                 return View(input);
@@ -122,6 +128,70 @@ namespace LaptopShop.Controllers
 
                 return View(input);
             }
+        }
+
+        // =========================================================================
+        // AJAX: KIỂM TRA MÃ GIẢM GIÁ (COUPON)
+        // =========================================================================
+        [HttpPost]
+        public async Task<IActionResult> CheckCoupon([FromForm] string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return Json(new { success = false, message = "Vui lòng nhập mã giảm giá!" });
+            }
+
+            var cleanCode = code.Trim().ToUpper();
+            var coupon = await _context.Coupons.FirstOrDefaultAsync(c => c.Code == cleanCode);
+
+            if (coupon == null || !coupon.IsActive)
+            {
+                return Json(new { success = false, message = "Mã giảm giá không tồn tại hoặc đã bị vô hiệu hóa!" });
+            }
+
+            if (coupon.ExpiryDate < DateTime.Now)
+            {
+                return Json(new { success = false, message = "Mã giảm giá này đã hết hạn sử dụng!" });
+            }
+
+            if (coupon.UsageCount >= coupon.MaxUsage)
+            {
+                return Json(new { success = false, message = "Mã giảm giá này đã hết lượt sử dụng!" });
+            }
+
+            var items = _cartService.GetCartDetails();
+            decimal subtotal = items.Sum(i => i.TotalPrice);
+
+            if (subtotal < coupon.MinOrderAmount)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = $"Mã này chỉ áp dụng cho đơn hàng từ {coupon.MinOrderAmount:N0} đ trở lên (Hiện tại: {subtotal:N0} đ)!"
+                });
+            }
+
+            decimal discount = 0;
+            if (coupon.DiscountType == "Percentage")
+            {
+                discount = subtotal * (coupon.DiscountValue / 100m);
+            }
+            else
+            {
+                discount = coupon.DiscountValue;
+            }
+
+            discount = Math.Min(discount, subtotal);
+            decimal finalTotal = Math.Max(0, subtotal - discount);
+
+            return Json(new
+            {
+                success = true,
+                message = $"Áp dụng mã '{coupon.Code}' thành công! {coupon.Description}",
+                discountAmount = discount,
+                finalTotal = finalTotal,
+                code = coupon.Code
+            });
         }
 
         [HttpGet]

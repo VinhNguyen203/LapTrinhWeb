@@ -1,57 +1,111 @@
-﻿@model LaptopShop.Models.Order
+@model LaptopShop.Models.Order
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
-    ViewData["Title"] = "Thanh toán QR";
+    ViewData["Title"] = "Thanh toán QR Chuyển khoản";
 
-    string? qrPath = Configuration["Payment:QrImagePath"];
+    string bankName = Configuration["Payment:BankName"] ?? "MBBank";
+    string accountNumber = Configuration["Payment:AccountNumber"] ?? "09123456789";
+    string accountName = Configuration["Payment:AccountName"] ?? "LAPTOPSHOP OFFICIAL";
     string transferContent = $"LS{Model.Id:D6}";
+    long amount = Convert.ToInt64(Model.TotalAmount ?? 0);
+
+    // Tạo link VietQR tự động điền số tiền và nội dung
+    string vietQrUrl = $"https://img.vietqr.io/image/{bankName}-{accountNumber}-compact2.png?amount={amount}&addInfo={transferContent}&accountName={Uri.EscapeDataString(accountName)}";
 }
 
-<h1>Thanh toán chuyển khoản</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Header -->
+                <div class="p-4 text-white text-center" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+                    <i class="fa-solid fa-qrcode fs-1 mb-2"></i>
+                    <h3 class="fw-bold mb-1">Thanh Toán Chuyển Khoản Qua VietQR</h3>
+                    <p class="mb-0 small opacity-75">Quét mã QR dưới đây bằng ứng dụng Ngân hàng (Mobile Banking) của bạn</p>
+                </div>
 
-<div class="alert alert-warning">
-    Đơn đã được tạo, đang chờ cửa hàng xác nhận thanh toán.
+                <div class="card-body p-4 p-md-5">
+                    <div class="row align-items-center g-4">
+                        <!-- Cột hiển thị mã QR -->
+                        <div class="col-md-5 text-center border-end-md">
+                            <div class="p-2 border rounded-3 d-inline-block bg-white shadow-sm">
+                                <img src="@vietQrUrl" alt="Mã VietQR thanh toán đơn hàng #@Model.Id" class="img-fluid rounded" style="max-width: 250px; width: 100%;" />
+                            </div>
+                            <div class="small text-muted mt-2">
+                                <i class="fa-solid fa-camera me-1"></i> Mở App Ngân hàng & Quét QR
+                            </div>
+                        </div>
+
+                        <!-- Cột thông tin chi tiết chuyển khoản -->
+                        <div class="col-md-7">
+                            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Thông Tin Chuyển Khoản</h5>
+
+                            <div class="mb-2 d-flex justify-content-between">
+                                <span class="text-muted">Ngân hàng thụ hưởng:</span>
+                                <strong class="text-dark">@bankName</strong>
+                            </div>
+
+                            <div class="mb-2 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Số tài khoản:</span>
+                                <div>
+                                    <strong class="font-monospace text-primary fs-5" id="bank-acc-no">@accountNumber</strong>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-1 py-0 px-2" onclick="copyToClipboard('@accountNumber', this)" title="Sao chép">
+                                        <i class="fa-solid fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-2 d-flex justify-content-between">
+                                <span class="text-muted">Chủ tài khoản:</span>
+                                <strong class="text-dark">@accountName</strong>
+                            </div>
+
+                            <div class="mb-2 d-flex justify-content-between">
+                                <span class="text-muted">Số tiền cần thanh toán:</span>
+                                <strong class="text-danger fs-5">@Model.TotalAmount?.ToString("N0") đ</strong>
+                            </div>
+
+                            <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                                <span class="text-muted small">Nội dung chuyển:</span>
+                                <div>
+                                    <strong class="text-primary font-monospace" id="transfer-code">@transferContent</strong>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-1 py-0 px-2" onclick="copyToClipboard('@transferContent', this)" title="Sao chép">
+                                        <i class="fa-solid fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning py-2 small mb-0">
+                                <i class="fa-solid fa-circle-info me-1"></i> Vui lòng ghi chính xác <strong>@transferContent</strong> để hệ thống tự động xác nhận đơn hàng nhanh chóng.
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+                        <a asp-controller="Orders" asp-action="Index" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="fa-solid fa-box-archive me-1"></i> Xem Đơn Hàng Của Tôi
+                        </a>
+                        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+                            <i class="fa-solid fa-bag-shopping me-1"></i> Tiếp tục xem sản phẩm
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<p>Mã đơn: <strong>@transferContent</strong></p>
-
-@if (!string.IsNullOrWhiteSpace(qrPath))
-{
-    <img src="@Url.Content(qrPath)"
-         alt="QR nhận tiền của cửa hàng"
-         class="img-fluid mb-3"
-         style="max-width: 300px;" />
-}
-else
-{
-    <p class="text-danger">Chưa cấu hình ảnh QR.</p>
-}
-
-<dl>
-    <dt>Ngân hàng</dt>
-    <dd>@Configuration["Payment:BankName"]</dd>
-
-    <dt>Số tài khoản</dt>
-    <dd>@Configuration["Payment:AccountNumber"]</dd>
-
-    <dt>Chủ tài khoản</dt>
-    <dd>@Configuration["Payment:AccountName"]</dd>
-
-    <dt>Số tiền chuyển</dt>
-    <dd>@Model.TotalAmount?.ToString("N0") đ</dd>
-
-    <dt>Nội dung chuyển khoản</dt>
-    <dd><strong>@transferContent</strong></dd>
-</dl>
-
-<p>
-    Quét QR và nhập đúng số tiền, nội dung phía trên.
-    Cửa hàng sẽ đối soát thủ công.
-</p>
-
-<a asp-controller="DatabaseTest"
-   asp-action="Index"
-   class="btn btn-primary">
-    Tiếp tục mua hàng
-</a>
+<script>
+    function copyToClipboard(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-success"></i>';
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+            }, 2000);
+        });
+    }
+</script>

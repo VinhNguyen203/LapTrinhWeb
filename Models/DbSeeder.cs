@@ -15,7 +15,7 @@ namespace LaptopShop.Models
 
             try
             {
-                // 1. Tạo bảng Coupons nếu chưa tồn tại
+                // 1. Tạo hoặc cập nhật cấu trúc bảng Coupons
                 await context.Database.ExecuteSqlRawAsync(@"
                     IF OBJECT_ID(N'[dbo].[Coupons]', N'U') IS NULL
                     BEGIN
@@ -32,6 +32,31 @@ namespace LaptopShop.Models
                             [IsActive] BIT NOT NULL DEFAULT 1,
                             [CreatedAt] DATETIME2 NOT NULL DEFAULT GETDATE()
                         );
+                    END
+                    ELSE
+                    BEGIN
+                        IF COL_LENGTH('[dbo].[Coupons]', 'ExpiryDate') IS NULL
+                        BEGIN
+                            ALTER TABLE [dbo].[Coupons] ADD [ExpiryDate] DATETIME2 NOT NULL CONSTRAINT DF_Coupons_ExpiryDate DEFAULT DATEADD(month, 1, GETDATE());
+                            IF COL_LENGTH('[dbo].[Coupons]', 'EndDate') IS NOT NULL
+                                EXEC('UPDATE [dbo].[Coupons] SET [ExpiryDate] = [EndDate] WHERE [EndDate] IS NOT NULL');
+                        END
+                        IF COL_LENGTH('[dbo].[Coupons]', 'MaxUsage') IS NULL
+                        BEGIN
+                            ALTER TABLE [dbo].[Coupons] ADD [MaxUsage] INT NOT NULL CONSTRAINT DF_Coupons_MaxUsage DEFAULT 100;
+                            IF COL_LENGTH('[dbo].[Coupons]', 'UsageLimit') IS NOT NULL
+                                EXEC('UPDATE [dbo].[Coupons] SET [MaxUsage] = [UsageLimit] WHERE [UsageLimit] IS NOT NULL');
+                        END
+                        IF COL_LENGTH('[dbo].[Coupons]', 'UsageCount') IS NULL
+                        BEGIN
+                            ALTER TABLE [dbo].[Coupons] ADD [UsageCount] INT NOT NULL CONSTRAINT DF_Coupons_UsageCount DEFAULT 0;
+                            IF COL_LENGTH('[dbo].[Coupons]', 'TimesUsed') IS NOT NULL
+                                EXEC('UPDATE [dbo].[Coupons] SET [UsageCount] = [TimesUsed] WHERE [TimesUsed] IS NOT NULL');
+                        END
+                        IF COL_LENGTH('[dbo].[Coupons]', 'MinOrderAmount') IS NULL
+                            ALTER TABLE [dbo].[Coupons] ADD [MinOrderAmount] DECIMAL(18,2) NOT NULL CONSTRAINT DF_Coupons_MinOrder DEFAULT 0;
+                        IF COL_LENGTH('[dbo].[Coupons]', 'CreatedAt') IS NULL
+                            ALTER TABLE [dbo].[Coupons] ADD [CreatedAt] DATETIME2 NOT NULL CONSTRAINT DF_Coupons_CreatedAt DEFAULT GETDATE();
                     END
                 ");
 

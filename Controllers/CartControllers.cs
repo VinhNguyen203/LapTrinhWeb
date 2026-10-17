@@ -141,6 +141,38 @@ namespace LaptopShop.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Update(int productId, int quantity)
+        {
+            try
+            {
+                _cartService.UpdateItem(productId, quantity);
+                TempData["CartSuccess"] = "Đã cập nhật số lượng sản phẩm.";
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return CartResult("Đã cập nhật số lượng.");
+                }
+
+                return RedirectToAction("Index", "Cart");
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = ex.Message
+                    });
+                }
+
+                TempData["CartError"] = ex.Message;
+                return RedirectToAction("Index", "Cart");
+            }
+        }
+
         private IActionResult CartResult(string message)
         {
             var items = _cartService.GetCartDetails();

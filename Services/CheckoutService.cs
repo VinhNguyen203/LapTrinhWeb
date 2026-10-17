@@ -33,16 +33,49 @@ namespace LaptopShop.Services
                     .BeginTransaction(IsolationLevel.Serializable);
 
                 var items = _cartService.GetCheckoutItems();
+                decimal subtotal = items.Sum(item => item.TotalPrice);
+                decimal discountAmount = 0;
+
+                // Kiểm tra và áp dụng mã giảm giá Coupon nếu có
+                if (!string.IsNullOrWhiteSpace(input.CouponCode))
+                {
+                    var coupon = _context.Coupons.FirstOrDefault(c => c.Code == input.CouponCode.Trim());
+                    if (coupon != null && coupon.IsActive && coupon.ExpiryDate >= DateTime.Now && coupon.UsageCount < coupon.MaxUsage)
+                    {
+                        if (subtotal >= coupon.MinOrderAmount)
+                        {
+                            if (coupon.DiscountType == "Percentage")
+                            {
+                                discountAmount = subtotal * (coupon.DiscountValue / 100m);
+                            }
+                            else
+                            {
+                                discountAmount = coupon.DiscountValue;
+                            }
+
+                            discountAmount = Math.Min(discountAmount, subtotal);
+                            coupon.UsageCount += 1; // Tăng số lần sử dụng của mã
+                        }
+                    }
+                }
+
+                decimal finalTotal = Math.Max(0, subtotal - discountAmount);
+
+                string shippingAddr = input.ShippingAddress.Trim();
+                if (!string.IsNullOrWhiteSpace(input.OrderNotes))
+                {
+                    shippingAddr += $" (Ghi chú: {input.OrderNotes.Trim()})";
+                }
 
                 var order = new Order
                 {
                     UserId = userId,
                     CustomerName = input.CustomerName.Trim(),
                     PhoneNumber = input.PhoneNumber.Trim(),
-                    ShippingAddress = input.ShippingAddress.Trim(),
+                    ShippingAddress = shippingAddr,
                     OrderDate = DateTime.Now,
-                    TotalAmount = items.Sum(item => item.TotalPrice),
-                    Status = "Pending"
+                    TotalAmount = finalTotal,
+                    Status = "Đang xử lý"
                 };
 
                 foreach (var item in items.OrderBy(item => item.ProductId))
