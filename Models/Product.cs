@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LaptopShop.Models
@@ -25,5 +25,19 @@ namespace LaptopShop.Models
         public int? CategoryId { get; set; }
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }
+
+        [NotMapped]
+        public string ImageUrl
+        {
+            get
+            {
+                int[] jpgIds = { 1, 2, 3, 4, 6, 46, 47, 48, 49, 51 };
+                if (System.Array.IndexOf(jpgIds, Id) >= 0)
+                {
+                    return $"/images/products/{Id}.jpg";
+                }
+                return $"/images/products/{Id}.webp";
+            }
+        }
     }
 }
