@@ -137,6 +137,41 @@ BEGIN
 END
 GO
 
+-- 1.8. Bảng Mã giảm giá (Coupons)
+IF OBJECT_ID(N'[dbo].[Coupons]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[Coupons](
+        [Id]             INT IDENTITY(1,1) NOT NULL,
+        [Code]           NVARCHAR(50)      NOT NULL,
+        [Description]    NVARCHAR(255)     NULL,
+        [DiscountType]   NVARCHAR(20)      NOT NULL CONSTRAINT [DF_Coupons_DiscountType] DEFAULT ('Amount'),
+        [DiscountValue]  DECIMAL(18, 2)    NOT NULL,
+        [MinOrderAmount] DECIMAL(18, 2)    NOT NULL CONSTRAINT [DF_Coupons_MinOrderAmount] DEFAULT (0),
+        [ExpiryDate]     DATETIME2         NOT NULL CONSTRAINT [DF_Coupons_ExpiryDate] DEFAULT (DATEADD(month, 1, GETDATE())),
+        [UsageCount]     INT               NOT NULL CONSTRAINT [DF_Coupons_UsageCount] DEFAULT (0),
+        [MaxUsage]       INT               NOT NULL CONSTRAINT [DF_Coupons_MaxUsage] DEFAULT (100),
+        [IsActive]       BIT               NOT NULL CONSTRAINT [DF_Coupons_IsActive] DEFAULT (1),
+        [CreatedAt]      DATETIME2         NOT NULL CONSTRAINT [DF_Coupons_CreatedAt] DEFAULT (GETDATE()),
+        CONSTRAINT [PK_Coupons] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
+END
+GO
+
+-- 1.9. Bảng Giỏ hàng Khách hàng (CartItems)
+IF OBJECT_ID(N'[dbo].[CartItems]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[CartItems](
+        [Id]        INT IDENTITY(1,1) NOT NULL,
+        [UserId]    INT               NOT NULL,
+        [ProductId] INT               NOT NULL,
+        [Quantity]  INT               NOT NULL,
+        [CreatedAt] DATETIME          NOT NULL CONSTRAINT [DF_CartItems_CreatedAt] DEFAULT (GETDATE()),
+        [UpdatedAt] DATETIME          NOT NULL CONSTRAINT [DF_CartItems_UpdatedAt] DEFAULT (GETDATE()),
+        CONSTRAINT [PK_CartItems] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
+END
+GO
+
 -- =============================================================================
 -- 2. TẠO KHÓA NGOẠI (FOREIGN KEYS)
 -- =============================================================================
@@ -178,6 +213,22 @@ IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Reviews_Products'
 BEGIN
     ALTER TABLE [dbo].[Reviews] WITH CHECK 
     ADD CONSTRAINT [FK_Reviews_Products] FOREIGN KEY([ProductId]) REFERENCES [dbo].[Products] ([Id]);
+END
+GO
+
+-- CartItems -> Products
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_CartItems_Products')
+BEGIN
+    ALTER TABLE [dbo].[CartItems] WITH CHECK 
+    ADD CONSTRAINT [FK_CartItems_Products] FOREIGN KEY([ProductId]) REFERENCES [dbo].[Products] ([Id]);
+END
+GO
+
+-- CartItems -> Users
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_CartItems_Users')
+BEGIN
+    ALTER TABLE [dbo].[CartItems] WITH CHECK 
+    ADD CONSTRAINT [FK_CartItems_Users] FOREIGN KEY([UserId]) REFERENCES [dbo].[Users] ([Id]);
 END
 GO
 
@@ -396,6 +447,22 @@ BEGIN
 END
 GO
 
+-- 3.5. Dữ liệu Mã giảm giá (Coupons)
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Coupons])
+BEGIN
+    INSERT INTO [dbo].[Coupons] ([Code], [Description], [DiscountType], [DiscountValue], [MinOrderAmount], [ExpiryDate], [UsageCount], [MaxUsage], [IsActive], [CreatedAt])
+    VALUES 
+    (N'LAPTOP2026', N'Khuyến mãi chào năm mới 2026 cho đơn hàng từ 15 triệu', N'Amount', 500000, 15000000, DATEADD(month, 3, GETDATE()), 14, 100, 1, GETDATE()),
+    (N'GAMINGVIP', N'Giảm trực tiếp 1.000.000đ cho Laptop Gaming cấu hình khủng', N'Amount', 1000000, 25000000, DATEADD(month, 2, GETDATE()), 28, 50, 1, GETDATE()),
+    (N'FREESHIP', N'Miễn phí vận chuyển toàn quốc cho đơn hàng từ 10 triệu', N'Amount', 150000, 10000000, DATEADD(month, 6, GETDATE()), 65, 200, 1, GETDATE()),
+    (N'WELCOME100K', N'Voucher 100K dành tặng khách hàng mua lần đầu', N'Amount', 100000, 5000000, DATEADD(month, 1, GETDATE()), 89, 500, 1, GETDATE()),
+    (N'VIP2026', N'Khuyến mãi VIP 2026 - Giảm 15% tối đa 3.000.000đ', N'Percent', 15, 5000000, DATEADD(month, 12, GETDATE()), 0, 50, 1, GETDATE()),
+    (N'GIAM10', N'Giảm 10% tổng đơn hàng', N'Percent', 10, 1000000, DATEADD(month, 3, GETDATE()), 0, 100, 1, GETDATE()),
+    (N'WELCOME50K', N'Giảm trực tiếp 50.000đ cho đơn từ 200.000đ', N'Amount', 50000, 200000, DATEADD(month, 6, GETDATE()), 0, 500, 1, GETDATE());
+    PRINT N'==> Đã thêm dữ liệu mẫu cho bảng Coupons.';
+END
+GO
+
 -- =============================================================================
 -- 4. KIỂM TRA TỔNG QUAN DỮ LIỆU ĐÃ TẠO
 -- =============================================================================
@@ -413,6 +480,10 @@ SELECT 'OrderDetails', COUNT(*) FROM [dbo].[OrderDetails]
 UNION ALL
 SELECT 'Reviews', COUNT(*) FROM [dbo].[Reviews]
 UNION ALL
-SELECT 'Users', COUNT(*) FROM [dbo].[Users];
+SELECT 'Users', COUNT(*) FROM [dbo].[Users]
+UNION ALL
+SELECT 'Coupons', COUNT(*) FROM [dbo].[Coupons]
+UNION ALL
+SELECT 'CartItems', COUNT(*) FROM [dbo].[CartItems];
 PRINT N'=====================================================';
 GO

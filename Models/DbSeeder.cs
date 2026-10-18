@@ -13,8 +13,87 @@ namespace LaptopShop.Models
             using var context = new AppDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>());
 
+            // 1. Đảm bảo Database LaptopStoreDB đã tồn tại trên SQL Server
             try
             {
+                var connStr = context.Database.GetConnectionString();
+                if (!string.IsNullOrEmpty(connStr))
+                {
+                    var masterBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connStr)
+                    {
+                        InitialCatalog = "master",
+                        ConnectTimeout = 4
+                    };
+                    using var masterConn = new Microsoft.Data.SqlClient.SqlConnection(masterBuilder.ConnectionString);
+                    await masterConn.OpenAsync();
+                    using var cmd = masterConn.CreateCommand();
+                    cmd.CommandText = @"
+                        IF DB_ID(N'LaptopStoreDB') IS NULL
+                        BEGIN
+                            CREATE DATABASE [LaptopStoreDB];
+                        END;
+                    ";
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+            catch { }
+
+            try
+            {
+                // Kiểm tra xem bảng Products đã tồn tại và có dữ liệu hay chưa (dùng raw ADO.NET tránh EF Core throw exception)
+                bool hasProducts = false;
+                try
+                {
+                    var conn = context.Database.GetDbConnection();
+                    if (conn.State != System.Data.ConnectionState.Open)
+                    {
+                        await conn.OpenAsync();
+                    }
+                    using var checkCmd = conn.CreateCommand();
+                    checkCmd.CommandText = "SELECT CASE WHEN OBJECT_ID(N'[dbo].[Products]', N'U') IS NOT NULL AND EXISTS(SELECT 1 FROM [dbo].[Products]) THEN 1 ELSE 0 END";
+                    var res = await checkCmd.ExecuteScalarAsync();
+                    hasProducts = Convert.ToInt32(res) == 1;
+                }
+                catch { }
+
+                // Nếu chưa có bảng hoặc chưa có dữ liệu sản phẩm (máy mới clone từ Git), tự động nạp toàn bộ từ LaptopStoreDB.sql
+                if (!hasProducts)
+                {
+                    string[] candidatePaths = new[]
+                    {
+                        System.IO.Path.Combine(AppContext.BaseDirectory, "LaptopStoreDB.sql"),
+                        System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "LaptopStoreDB.sql"),
+                        System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "LaptopStoreDB.sql")
+                    };
+
+                    string? sqlFilePath = candidatePaths.FirstOrDefault(System.IO.File.Exists);
+                    if (!string.IsNullOrEmpty(sqlFilePath))
+                    {
+                        string fullSql = await System.IO.File.ReadAllTextAsync(sqlFilePath);
+                        var batches = System.Text.RegularExpressions.Regex.Split(
+                            fullSql,
+                            @"^\s*GO\s*$",
+                            System.Text.RegularExpressions.RegexOptions.Multiline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                        foreach (var batch in batches)
+                        {
+                            var trimmed = batch.Trim();
+                            if (string.IsNullOrWhiteSpace(trimmed)) continue;
+                            if (trimmed.StartsWith("USE [master]", StringComparison.OrdinalIgnoreCase)) continue;
+                            if (trimmed.StartsWith("IF DB_ID(N'LaptopStoreDB')", StringComparison.OrdinalIgnoreCase)) continue;
+                            if (trimmed.StartsWith("USE [LaptopStoreDB]", StringComparison.OrdinalIgnoreCase)) continue;
+
+                            try
+                            {
+                                await context.Database.ExecuteSqlRawAsync(trimmed);
+                            }
+                            catch { }
+                        }
+                    }
+                }
+
+                await context.Database.EnsureCreatedAsync();
+
                 // 1. Tạo hoặc cập nhật cấu trúc bảng Coupons
                 await context.Database.ExecuteSqlRawAsync(@"
                     IF OBJECT_ID(N'[dbo].[Coupons]', N'U') IS NULL
@@ -166,6 +245,21 @@ namespace LaptopShop.Models
                     );
                     await context.SaveChangesAsync();
                 }
+
+                // 4. Tạo cấu trúc bảng CartItems nếu chưa có
+                await context.Database.ExecuteSqlRawAsync(@"
+                    IF OBJECT_ID(N'[dbo].[CartItems]', N'U') IS NULL
+                    BEGIN
+                        CREATE TABLE [dbo].[CartItems](
+                            [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            [UserId] INT NOT NULL,
+                            [ProductId] INT NOT NULL,
+                            [Quantity] INT NOT NULL,
+                            [CreatedAt] DATETIME NOT NULL DEFAULT GETDATE(),
+                            [UpdatedAt] DATETIME NOT NULL DEFAULT GETDATE()
+                        );
+                    END
+                ");
             }
             catch
             {

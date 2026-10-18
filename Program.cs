@@ -8,11 +8,69 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Đăng ký các dịch vụ (Dependency Injection)
 // ================================================
 
-// Đăng ký DbContext với SQL Server (Dùng chung AppDbContext)
+// Tự động nhận diện SQL Server instance phù hợp trên mọi máy (hỗ trợ .\SQLEXPRESS, localhost, ., LocalDB, v.v.)
+string? configuredConnStr = builder.Configuration.GetConnectionString("DefaultConnection");
+string activeConnStr = configuredConnStr ?? "Server=.\\SQLEXPRESS;Database=LaptopStoreDB;Trusted_Connection=True;TrustServerCertificate=True;";
+
+if (activeConnStr.Contains(".\\\\SQLEXPRESS"))
+{
+    activeConnStr = activeConnStr.Replace(".\\\\SQLEXPRESS", ".\\SQLEXPRESS");
+}
+
+bool canConnect = false;
+try
+{
+    var testBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(activeConnStr)
+    {
+        InitialCatalog = "master",
+        ConnectTimeout = 3
+    };
+    using var testConn = new Microsoft.Data.SqlClient.SqlConnection(testBuilder.ConnectionString);
+    testConn.Open();
+    canConnect = true;
+}
+catch { }
+
+if (!canConnect)
+{
+    var candidateInstances = new[]
+    {
+        "Server=.\\SQLEXPRESS;Database=LaptopStoreDB;Trusted_Connection=True;TrustServerCertificate=True;",
+        "Server=localhost;Database=LaptopStoreDB;Trusted_Connection=True;TrustServerCertificate=True;",
+        "Server=.;Database=LaptopStoreDB;Trusted_Connection=True;TrustServerCertificate=True;",
+        "Server=(localdb)\\MSSQLLocalDB;Database=LaptopStoreDB;Trusted_Connection=True;TrustServerCertificate=True;",
+        "Server=127.0.0.1;Database=LaptopStoreDB;Trusted_Connection=True;TrustServerCertificate=True;",
+        "Server=localhost\\SQLEXPRESS;Database=LaptopStoreDB;Trusted_Connection=True;TrustServerCertificate=True;",
+        "Server=DESKTOP-0C6109V;Database=LaptopStoreDB;Trusted_Connection=True;TrustServerCertificate=True;"
+    };
+
+    foreach (var fb in candidateInstances)
+    {
+        try
+        {
+            var fbBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(fb)
+            {
+                InitialCatalog = "master",
+                ConnectTimeout = 3
+            };
+            using var fbConn = new Microsoft.Data.SqlClient.SqlConnection(fbBuilder.ConnectionString);
+            fbConn.Open();
+            activeConnStr = fb;
+            canConnect = true;
+            break;
+        }
+        catch { }
+    }
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure()
+        activeConnStr,
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(3),
+            errorNumbersToAdd: null
+        )
     )
 );
 
